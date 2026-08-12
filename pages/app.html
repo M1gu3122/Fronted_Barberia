@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Corte Perfecto — Barberia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+    <div class="app-shell">
+
+        <!-- ===== Sidebar ===== -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <span class="brand-mark"><i class="fas fa-scissors"></i></span>
+                <div>
+                    <div class="brand-name">El Corte Perfecto</div>
+                    <div class="brand-sub">Barberia</div>
+                </div>
+            </div>
+            <nav id="sidebar-nav" class="sidebar-menu"></nav>
+            <div id="sidebar-footer" class="sidebar-footer"></div>
+        </aside>
+
+        <!-- ===== Contenido ===== -->
+        <div class="main">
+            <header class="topbar">
+                <button id="top-menu" class="icon-btn" aria-label="Menu"><i class="fas fa-bars"></i></button>
+                <div style="display:flex;flex-direction:column;line-height:1.2;">
+                    <div id="page-title" class="page-title">Dashboard</div>
+                    <div id="page-crumb" class="page-crumb"></div>
+                </div>
+                <div class="topbar-right">
+                    <button id="top-bell" class="icon-btn" aria-label="Notificaciones">
+                        <i class="far fa-bell"></i><span class="dot"></span>
+                    </button>
+                    <button id="top-avatar-btn" class="icon-btn" style="display:flex;align-items:center;gap:10px;padding:0 6px 0 4px;width:auto;border-radius:999px;" aria-label="Mi cuenta">
+                        <span id="top-avatar" class="avatar avatar-sm" style="width:32px;height:32px;"></span>
+                        <span style="display:flex;flex-direction:column;text-align:left;line-height:1.15;">
+                            <span id="top-user" style="font-size:12.5px;font-weight:700;color:var(--ink);"></span>
+                            <span id="top-rol" style="font-size:10.5px;color:var(--mist);font-weight:600;"></span>
+                        </span>
+                        <i class="fas fa-chevron-down" style="font-size:10px;color:var(--mist);"></i>
+                    </button>
+                </div>
+            </header>
+
+            <main id="view-region" class="view-region"></main>
+        </div>
+
+        <!-- ===== Bottom nav (mobile) ===== -->
+        <nav id="bottom-nav" class="bottom-nav"></nav>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/views-cliente.js"></script>
+    <script src="../js/views-barbero.js"></script>
+    <script src="../js/views-admin.js"></script>
+    <script src="../js/views-recepcion.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var rol = new URLSearchParams(location.search).get("rol") || "cliente";
+            var nombres = {
+                cliente: ["Carlos Lopez", "Cliente"],
+                barbero: ["Andres Duarte", "Barbero"],
+                admin: ["Andres Reyes", "Administrador"],
+                recepcion: ["Rosa Maria Cardenas", "Recepcionista"]
+            };
+            var n = nombres[rol] || nombres.cliente;
+            DB.setSesion(rol, n[0], n[1]);
+            App.init();
+        });
+    </script>
+</body>
+</html>

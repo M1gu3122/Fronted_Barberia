@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contrasena — El Corte Perfecto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        body { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(160deg,#101212,#1c1712); }
+        .auth-card { width: 100%; max-width: 440px; background: var(--paper); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+    </style>
+</head>
+<body>
+    <div class="auth-card" id="rec-card">
+        <div style="background:var(--charcoal);border-radius:16px 16px 0 0;padding:26px 30px;color:#fff;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(197,160,89,.2),transparent 70%);"></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span class="brand-mark"><i class="fas fa-scissors"></i></span>
+                <div>
+                    <div class="brand-name" style="color:#fff;">El Corte Perfecto</div>
+                    <div class="brand-sub">Recuperacion</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="rec-paso-1" style="padding:28px 30px;">
+            <h1 class="font-display" style="font-size:24px;font-weight:700;margin-bottom:8px;">Recupera tu contrasena</h1>
+            <p style="color:var(--mist);font-size:14px;margin-bottom:22px;">Te enviaremos un enlace para restablecer el acceso a tu cuenta.</p>
+            <form id="rec-form" novalidate style="display:flex;flex-direction:column;gap:14px;">
+                <div class="field">
+                    <label class="field-label">Correo electronico <span class="req">*</span></label>
+                    <input class="input" id="rec-correo" type="email" placeholder="tucorreo@mail.com">
+                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Ingresa un correo valido.</div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width:100%;" id="rec-btn">
+                    <i class="fas fa-paper-plane"></i> Enviar enlace
+                </button>
+            </form>
+            <p style="text-align:center;margin-top:18px;font-size:13.5px;">
+                <a href="login.html" style="color:var(--brass-dim);font-weight:700;text-decoration:none;"><i class="fas fa-arrow-left"></i> Volver al inicio de sesion</a>
+            </p>
+        </div>
+
+        <div id="rec-paso-2" style="padding:36px 30px;text-align:center;display:none;">
+            <div class="confirm-ico success" style="margin:0 auto 16px;"><i class="fas fa-envelope-circle-check"></i></div>
+            <h2 class="font-display" style="font-size:20px;font-weight:700;margin-bottom:8px;">Revisa tu correo</h2>
+            <p style="color:var(--mist);font-size:14px;margin-bottom:22px;">Si existe una cuenta con ese correo, recibiras un enlace para restablecer tu contrasena.</p>
+            <button class="btn btn-ghost btn-block" onclick="location.href='login.html'">Volver al inicio de sesion</button>
+        </div>
+    </div>
+
+    <script src="../js/ui.js"></script>
+    <script src="../js/data.js"></script>
+    <script>
+        (function () {
+            "use strict";
+            if (window.gsap) {
+                gsap.from("#rec-card", { autoAlpha: 0, y: 28, duration: 0.55, ease: "power2.out" });
+            }
+            var form = document.getElementById("rec-form");
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var correo = document.getElementById("rec-correo");
+                var err = form.querySelector(".field-error");
+                err.style.display = "none";
+                correo.classList.remove("is-error");
+                if (!correo.value || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo.value)) {
+                    correo.classList.add("is-error");
+                    err.style.display = "flex";
+                    return;
+                }
+                var btn = document.getElementById("rec-btn");
+                btn.classList.add("btn-loading");
+                setTimeout(function () {
+                    btn.classList.remove("btn-loading");
+                    document.getElementById("rec-paso-1").style.display = "none";
+                    var paso2 = document.getElementById("rec-paso-2");
+                    paso2.style.display = "block";
+                    if (window.gsap) gsap.fromTo(paso2, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" });
+                }, 900);
+            });
+        })();
+    </script>
+</body>
+</html>

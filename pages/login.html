@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesion — El Corte Perfecto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        body { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+        .auth-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; width: 100%; position: relative; z-index: 1; }
+        @media (min-width: 1024px) {
+            .auth-shell { grid-template-columns: 1.05fr 1fr; }
+        }
+        .auth-bg {
+            position: fixed; inset: 0; z-index: 0; overflow: hidden;
+        }
+        .auth-video {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .auth-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(160deg, rgba(16,18,18,.62) 0%, rgba(20,20,20,.48) 50%, rgba(28,23,18,.76) 100%);
+        }
+        .auth-hero {
+            display: none; position: relative; overflow: hidden;
+            background: transparent;
+            color: #eee; padding: 56px;
+        }
+        @media (min-width: 1024px) { .auth-hero { display: flex; flex-direction: column; justify-content: space-between; } }
+        .auth-hero::after {
+            content: ""; position: absolute; right: -120px; bottom: -120px;
+            width: 420px; height: 420px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(197,160,89,.16), transparent 65%);
+        }
+        .auth-form-side { display: flex; flex-direction: column; justify-content: center; padding: 40px 32px; max-width: 460px; width: 100%; margin: 0 auto;
+            background: rgba(18,20,20,.74); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,.12); border-radius: 18px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.45); color: #f2efe7; }
+        .auth-form-side h1 { color: #fff; }
+        .auth-form-side p { color: #cfccc4; }
+        .auth-form-side .field-label { color: #cfccc4; }
+        .auth-form-side .req { color: var(--brass-light); }
+        .auth-form-side .input { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); color: #fff; }
+        .auth-form-side .input::placeholder { color: #8d8a82; }
+        .auth-form-side .input:focus { border-color: var(--brass-light); }
+        .auth-form-side .input-toggle { color: #cfccc4; }
+        .auth-form-side .field-error { color: #ffb4a8; }
+        .auth-form-side .btn-ghost { color: #f2efe7; border-color: rgba(255,255,255,.16); }
+        .auth-form-side .btn-ghost:hover { background: rgba(255,255,255,.08); color: #fff; }
+        .auth-form-side .divider-label { color: #8d8a82; }
+        .auth-form-side .divider-label::before, .auth-form-side .divider-label::after { background: rgba(255,255,255,.14); }
+        .auth-form-side a { color: var(--brass-light); }
+        @media (min-width: 768px) { .auth-form-side { padding: 56px 40px; } }
+    </style>
+</head>
+    <body class="bg-sand">
+    <div class="auth-bg">
+        <video class="auth-video" autoplay muted loop playsinline preload="auto">
+            <source src="../assets/videos/barberia-login_a3e539e7.mp4" type="video/mp4">
+        </video>
+        <div class="auth-overlay"></div>
+    </div>
+    <div class="auth-shell">
+        <!-- Lado visual -->
+        <section class="auth-hero">
+            <div class="sidebar-brand" style="border:none;padding:0;">
+                <span class="brand-mark"><i class="fas fa-scissors"></i></span>
+                <div>
+                    <div class="brand-name" style="color:#fff;">El Corte Perfecto</div>
+                    <div class="brand-sub">Barberia</div>
+                </div>
+            </div>
+            <div style="position:relative;z-index:1;max-width:400px;">
+                <div class="day-pill" style="background:rgba(197,160,89,.16);color:var(--brass-light);margin-bottom:16px;">PRECISION & HERENCIA</div>
+                <div class="font-display" style="font-size:44px;line-height:1.08;font-weight:700;color:#fff;margin-bottom:16px;">
+                    El arte del buen corte, gestionado con orden.
+                </div>
+                <p style="color:#a9a69c;font-size:15px;line-height:1.6;margin-bottom:24px;">
+                    Agenda citas, administra tu equipo y controla cada servicio desde una sola plataforma. Tradicion clasica, tecnologia moderna.
+                </p>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:340px;">
+                    <div style="padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:10px;text-align:center;background:rgba(255,255,255,.03);">
+                        <i class="fas fa-calendar-check" style="color:var(--brass-light);font-size:18px;margin-bottom:6px;display:block;"></i>
+                        <div style="font-size:12.5px;font-weight:600;">Reservas</div>
+                    </div>
+                    <div style="padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:10px;text-align:center;background:rgba(255,255,255,.03);">
+                        <i class="fas fa-users" style="color:var(--brass-light);font-size:18px;margin-bottom:6px;display:block;"></i>
+                        <div style="font-size:12.5px;font-weight:600;">Clientes</div>
+                    </div>
+                    <div style="padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:10px;text-align:center;background:rgba(255,255,255,.03);">
+                        <i class="fas fa-chart-column" style="color:var(--brass-light);font-size:18px;margin-bottom:6px;display:block;"></i>
+                        <div style="font-size:12.5px;font-weight:600;">Reportes</div>
+                    </div>
+                </div>
+            </div>
+            <div style="color:#6f6d66;font-size:12.5px;position:relative;z-index:1;">&copy; 2026 El Corte Perfecto</div>
+        </section>
+
+        <!-- Formulario -->
+        <section class="auth-form-side">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;" class="lg-hide">
+                <span class="brand-mark"><i class="fas fa-scissors"></i></span>
+                <div>
+                    <div class="brand-name" style="color:#fff;">El Corte Perfecto</div>
+                    <div class="brand-sub">Barberia</div>
+                </div>
+            </div>
+
+            <h1 class="font-display" style="font-size:30px;font-weight:700;letter-spacing:-.01em;">Bienvenido de nuevo</h1>
+            <p style="color:var(--mist);font-size:14px;margin-bottom:28px;">Ingresa tus credenciales para continuar.</p>
+
+            <form id="login-form" novalidate style="display:flex;flex-direction:column;gap:16px;">
+                <div class="field">
+                    <label class="field-label" for="email">Correo electronico <span class="req">*</span></label>
+                    <input class="input" id="email" type="email" placeholder="tucorreo@mail.com" required>
+                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Ingresa un correo valido.</div>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="password">Contrasena <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input class="input" id="password" type="password" placeholder="••••••••" required>
+                        <button type="button" class="input-toggle" id="toggle-pass" aria-label="Mostrar contrasena"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> La contrasena es obligatoria.</div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--smoke);font-weight:500;">
+                        <input type="checkbox" style="width:15px;height:15px;accent-color:var(--brass);"> Recordarme
+                    </label>
+                    <a href="recuperar.html" style="color:var(--brass-dim);font-weight:600;text-decoration:none;">Recuperar contrasena</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" id="login-btn" style="width:100%;">
+                    <i class="fas fa-arrow-right-to-bracket"></i> Iniciar sesion
+                </button>
+            </form>
+
+            <!-- Demo: seleccion de rol -->
+            <div class="divider-label" style="margin:26px 0 18px;">Modo demostracion</div>
+            <p style="font-size:12.5px;color:var(--mist);margin-bottom:10px;">Accede como uno de los roles del sistema:</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;">
+                <button class="btn btn-ghost btn-sm" data-rol="cliente"><i class="fas fa-user"></i> Cliente</button>
+                <button class="btn btn-ghost btn-sm" data-rol="barbero"><i class="fas fa-user-tie"></i> Barbero</button>
+                <button class="btn btn-ghost btn-sm" data-rol="recepcion"><i class="fas fa-headset"></i> Recepcion</button>
+                <button class="btn btn-ghost btn-sm" data-rol="admin"><i class="fas fa-shield-halved"></i> Admin</button>
+            </div>
+
+            <p style="margin-top:28px;text-align:center;font-size:14px;color:var(--smoke);">
+                No tienes cuenta?
+                <a href="registro.html" style="color:var(--brass-dim);font-weight:700;text-decoration:none;">Registrate como cliente</a>
+            </p>
+        </section>
+    </div>
+
+    <script src="../js/ui.js"></script>
+    <script src="../js/data.js"></script>
+    <script>
+        (function () {
+            "use strict";
+            // Entrada GSAP
+            if (window.gsap) {
+                gsap.from(".auth-form-side", { autoAlpha: 0, y: 24, duration: 0.5, ease: "power2.out", delay: 0.1 });
+                gsap.from(".auth-hero > *", { autoAlpha: 0, y: 16, duration: 0.5, stagger: 0.08, ease: "power2.out", delay: 0.15 });
+            }
+
+            var pass = document.getElementById("password");
+            var toggle = document.getElementById("toggle-pass");
+            toggle.addEventListener("click", function () {
+                var ver = pass.type === "password";
+                pass.type = ver ? "text" : "password";
+                toggle.innerHTML = ver ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            });
+
+            var form = document.getElementById("login-form");
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var ok = true;
+                var email = document.getElementById("email");
+                var errs = form.querySelectorAll(".field-error");
+                errs.forEach(function (er) { er.style.display = "none"; });
+                email.classList.remove("is-error");
+                pass.classList.remove("is-error");
+                if (!email.value || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) {
+                    email.classList.add("is-error");
+                    errs[0].style.display = "flex"; ok = false;
+                }
+                if (!pass.value) {
+                    pass.classList.add("is-error");
+                    errs[1].style.display = "flex"; ok = false;
+                }
+                if (!ok) return;
+                var btn = document.getElementById("login-btn");
+                btn.classList.add("btn-loading");
+                setTimeout(function () {
+                    UI.toast("Bienvenido", "Iniciando sesion...", "success");
+                    location.href = "app.html?rol=cliente";
+                }, 800);
+            });
+
+            // Demo: acceso por rol
+            document.querySelectorAll("[data-rol]").forEach(function (b) {
+                b.addEventListener("click", function () {
+                    var rol = b.getAttribute("data-rol");
+                    location.href = "app.html?rol=" + rol;
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

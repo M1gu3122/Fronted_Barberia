@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro — El Corte Perfecto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        body { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(160deg,#101212,#1c1712); }
+        .auth-card { width: 100%; max-width: 480px; background: var(--paper); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+    </style>
+</head>
+<body>
+    <div class="auth-card" id="registro-card">
+        <div style="background:var(--charcoal);border-radius:16px 16px 0 0;padding:26px 30px;color:#fff;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(197,160,89,.2),transparent 70%);"></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span class="brand-mark"><i class="fas fa-scissors"></i></span>
+                <div>
+                    <div class="brand-name" style="color:#fff;">El Corte Perfecto</div>
+                    <div class="brand-sub">Crea tu cuenta de cliente</div>
+                </div>
+            </div>
+            <h1 class="font-display" style="font-size:24px;font-weight:700;margin-top:20px;color:#fff;">Unete a la tradicion</h1>
+            <p style="color:#a9a69c;font-size:13.5px;">Reserva tus citas y recibe notificaciones de tu barberia.</p>
+        </div>
+
+        <form id="registro-form" novalidate style="padding:28px 30px;display:flex;flex-direction:column;gap:14px;">
+            <div class="form-grid-2">
+                <div class="field">
+                    <label class="field-label">Nombre <span class="req">*</span></label>
+                    <input class="input" id="r-nombre" placeholder="Carlos">
+                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+                </div>
+                <div class="field">
+                    <label class="field-label">Apellido <span class="req">*</span></label>
+                    <input class="input" id="r-apellido" placeholder="Lopez">
+                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="field-label">Correo electronico <span class="req">*</span></label>
+                <input class="input" id="r-correo" type="email" placeholder="tucorreo@mail.com">
+                <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Ingresa un correo valido.</div>
+            </div>
+            <div class="field">
+                <label class="field-label">Telefono <span class="req">*</span></label>
+                <input class="input" id="r-tel" type="tel" placeholder="300 123 4567">
+                <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+            </div>
+            <div class="form-grid-2">
+                <div class="field">
+                    <label class="field-label">Contrasena <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input class="input" id="r-pass" type="password" placeholder="Min. 6 caracteres">
+                        <button type="button" class="input-toggle toggle-eye" aria-label="Mostrar contrasena"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Minimo 6 caracteres.</div>
+                </div>
+                <div class="field">
+                    <label class="field-label">Confirmar <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input class="input" id="r-pass2" type="password" placeholder="Repite la contrasena">
+                        <button type="button" class="input-toggle toggle-eye" aria-label="Mostrar contrasena"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Las contrasenas no coinciden.</div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:6px;" id="registro-btn">
+                <i class="fas fa-user-plus"></i> Crear cuenta
+            </button>
+            <p style="text-align:center;font-size:13.5px;color:var(--smoke);margin-top:4px;">
+                Ya tienes cuenta?
+                <a href="login.html" style="color:var(--brass-dim);font-weight:700;text-decoration:none;">Inicia sesion</a>
+            </p>
+        </form>
+    </div>
+
+    <script src="../js/ui.js"></script>
+    <script src="../js/data.js"></script>
+    <script>
+        (function () {
+            "use strict";
+            if (window.gsap) {
+                gsap.from("#registro-card", { autoAlpha: 0, y: 28, duration: 0.55, ease: "power2.out" });
+            }
+
+            document.querySelectorAll(".toggle-eye").forEach(function (t) {
+                t.addEventListener("click", function () {
+                    var inp = t.closest(".input-wrap").querySelector("input");
+                    var ver = inp.type === "password";
+                    inp.type = ver ? "text" : "password";
+                    t.innerHTML = ver ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+                });
+            });
+
+            var form = document.getElementById("registro-form");
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var campos = [["r-nombre", 0], ["r-apellido", 1], ["r-correo", 2], ["r-tel", 3]];
+                var ok = true;
+                form.querySelectorAll(".field-error").forEach(function (er) { er.style.display = "none"; });
+                form.querySelectorAll(".input.is-error").forEach(function (i) { i.classList.remove("is-error"); });
+
+                campos.forEach(function (c) {
+                    var inp = document.getElementById(c[0]);
+                    if (!inp.value.trim()) { inp.classList.add("is-error"); form.querySelectorAll(".field-error")[c[1]].style.display = "flex"; ok = false; }
+                });
+                var correo = document.getElementById("r-correo");
+                if (correo.value && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo.value)) {
+                    correo.classList.add("is-error"); form.querySelectorAll(".field-error")[2].style.display = "flex"; ok = false;
+                }
+                var p1 = document.getElementById("r-pass"), p2 = document.getElementById("r-pass2");
+                if (p1.value.length < 6) { p1.classList.add("is-error"); form.querySelectorAll(".field-error")[4].style.display = "flex"; ok = false; }
+                if (p2.value && p2.value !== p1.value) { p2.classList.add("is-error"); form.querySelectorAll(".field-error")[5].style.display = "flex"; ok = false; }
+                if (!ok) return;
+
+                var btn = document.getElementById("registro-btn");
+                btn.classList.add("btn-loading");
+                setTimeout(function () {
+                    btn.classList.remove("btn-loading");
+                    UI.toast("Cuenta creada", "Bienvenido a El Corte Perfecto.", "success");
+                    setTimeout(function () { location.href = "app.html?rol=cliente"; }, 900);
+                }, 900);
+            });
+        })();
+    </script>
+</body>
+</html>

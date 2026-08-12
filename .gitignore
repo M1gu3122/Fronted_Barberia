@@ -1,0 +1,41 @@
+# Dependencias (Node / Tailwind)
+node_modules/
+
+# Entorno Python
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Salida de build (Tailwind CLI -> css/output.css)
+css/output.css
+
+# Editores / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs / cache
+*.log
+.cache/
+
+# Variables / secretos
+.env
+.env.*
+
+# Skills / configuracion de agentes (estado local)
+.claude/
+.codex/
+.opencode/
+.impeccable/
+.agents/
+
+# Documentacion
+*.md
