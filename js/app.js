@@ -226,12 +226,8 @@ window.App = (function () {
   function closeSidebarMobile() {
     var sb = el("sidebar");
     var scrim = el("sidebar-scrim");
-    if (window.innerWidth < 1024) {
-      sb.classList.remove("is-open");
-      if (scrim) scrim.remove();
-    } else if (scrim) {
-      scrim.remove();
-    }
+    sb.classList.remove("is-open");
+    if (scrim) scrim.remove();
   }
 
   /* ---------- Inicializacion ---------- */
@@ -252,6 +248,8 @@ window.App = (function () {
     if (menuBtn) menuBtn.addEventListener("click", function () {
       if (window.matchMedia("(min-width: 1024px)").matches) {
         document.body.classList.toggle("sidebar-collapsed");
+      } else if (el("sidebar").classList.contains("is-open")) {
+        closeSidebarMobile();
       } else {
         openSidebarMobile();
       }
