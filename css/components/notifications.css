@@ -1,0 +1,19 @@
+/* ============================================================
+   Components — Notifications
+   ============================================================ */
+
+.notif { display: flex; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--line); transition: background .15s; }
+.notif:last-child { border-bottom: none; }
+.notif:hover { background: #faf7f1; }
+.notif.unread { background: #fdf9f0; }
+.notif-ico {
+  width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 16px; flex: none;
+}
+.notif-ico.cita { background: var(--st-atencion-bg); color: var(--st-atencion); }
+.notif-ico.cambio { background: var(--st-pendiente-bg); color: var(--st-pendiente); }
+.notif-ico.cancel { background: var(--st-cancelada-bg); color: var(--st-cancelada); }
+.notif-ico.record { background: var(--st-confirmada-bg); color: var(--st-confirmada); }
+.notif-title { font-size: 13.5px; font-weight: 600; }
+.notif-time { font-size: 11.5px; color: var(--mist); }
+.notif-body { font-size: 13px; color: var(--smoke); }
+.unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brass); margin-left: auto; flex: none; }

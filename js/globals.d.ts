@@ -1,0 +1,27 @@
+declare var api: {
+  base: string;
+  _headers: (auth?: boolean) => Record<string, string>;
+  _handleResponse: (res: Response) => Promise<any>;
+  getCliente: (id: any) => Promise<any>;
+  getClientes: () => Promise<any>;
+  crearUsuario: (data: any) => Promise<any>;
+  actualizarUsuario: (id: any, data: any) => Promise<any>;
+  login: (correo: string, contraseña: string) => Promise<any>;
+  getUsuariosPanelAdmin: () => Promise<any>;
+  getInfoPerfilUsuario: (id: any) => Promise<any>;
+  getEmpleados: () => Promise<any>;
+  obtenerCitasDetalles: () => Promise<any>;
+  crearEmpleado: (data: any) => Promise<any>;
+  actualizarEmpleado: (id: any, data: any) => Promise<any>;
+  getServicios: () => Promise<any>;
+  getBarberosDisponibles: (ids_servicio: number[]) => Promise<any>;
+  crearCita: (data: any) => Promise<any>;
+  actualizarCita: (id: any, data: any) => Promise<any>;
+  getServiciosAdicionales: (id_servicio: number) => Promise<any>;
+  getHorarioBarberia: (id_barberia: number, fecha: string) => Promise<any>;
+  getHorariosSemanales: (id_barberia: number) => Promise<any>;
+  crearServicio: (data: any) => Promise<any>;
+  actualizarServicio: (id: any, data: any) => Promise<any>;
+  eliminarServicio: (id: any) => Promise<any>;
+  obtenerBarberia: () => Promise<any>;
+};

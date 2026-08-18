@@ -1,0 +1,26 @@
+{
+    "id_cita": 37,
+    "nombres": "Anderson",
+    "apellidos": "Lopez",
+    "servicios": "Diseño de cejas, Mullet",
+    "nombres_barbero": "Brandon",
+    "apellidos_barbero": "lopez",
+    "fecha_hora": "2026-08-13T17:00:00",
+    "estado_cita": "Pendiente"
+}
+  
+ {
+    "id_usuario": 7,
+    "nombres": "Anderson",
+    "apellidos": "Lopez",
+    "telefono": "34234234",
+    "correo": "alopez@example.com",
+    "id_cita": 37,
+    "id_barbero": 1,
+    "nombre_barbero": "Brandon",
+    "apellido_barbero": "lopez",
+    "fecha_hora": "2026-08-13T17:00:00",
+    "estado_cita": "Pendiente",
+    "id_servicio": 15,
+    "nombre_servicio": "Diseño de cejas"
+},

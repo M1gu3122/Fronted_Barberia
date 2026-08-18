@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Reprogramar cita - Barbería El Corte Perfecto</title>
+
+  <link rel="stylesheet" href="css/app.css">
+
+  <!-- Flatpickr -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+  >
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+  <style>
+    :root {
+      --primary: #121414;
+      --secondary: #C5A059;
+      --accent: #E9C176;
+
+      --text: #E2E2E2;
+      --background: #FFFFFF;
+      --white: #FFFFFF;
+
+      --sand: #F7F1EB;
+      --bone: #F2E8D2;
+
+      --brass: #C5A059;
+      --brass-dim: #A68542;
+      --brass-light: #D4C08F;
+
+      --line: #E0E0E0;
+      --smoke: #777;
+
+      --danger: #B42318;
+      --danger-bg: #FEF3F2;
+
+      --success: #2E7D32;
+      --success-bg: #EAF4EA;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family: 'Hanken Grotesk', sans-serif;
+
+      background: #f5f5f5;
+      color: var(--primary);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* =========================================================
+       OVERLAY
+       ========================================================= */
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+
+      background: rgba(0, 0, 0, 0.42);
+
+      z-index: 1000;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+    }
+
+    /* =========================================================
+       MODAL
+       ========================================================= */
+
+    .modal {
+      width: min(760px, 100%);
+      max-height: 92vh;
+
+      background: var(--white);
+
+      border-radius: 10px;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.18);
+
+      animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .modal-header {
+      padding: 18px 22px;
+
+      border-bottom: 1px solid var(--line);
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-title i {
+      color: var(--secondary);
+      font-size: 17px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+
+      font-family: 'Playfair Display', serif;
+
+      font-size: 21px;
+      font-weight: 600;
+
+      color: var(--primary);
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: transparent;
+      border: none;
+
+      border-radius: 6px;
+
+      color: var(--smoke);
+
+      cursor: pointer;
+
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--sand);
+      color: var(--primary);
+    }
+
+    /* =========================================================
+       BODY
+       ========================================================= */
+
+    .modal-body {
+      padding: 24px;
+
+      max-height: calc(92vh - 140px);
+
+      overflow-y: auto;
+    }
+
+    /* =========================================================
+       CITA ACTUAL
+       ========================================================= */
+
+    .section-title {
+      margin: 0 0 10px;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.8px;
+
+      color: var(--smoke);
+    }
+
+    .appointment-info {
+      background: var(--sand);
+
+      border: 1px solid #eee4da;
+
+      border-radius: 8px;
+
+      padding: 16px;
+
+      margin-bottom: 24px;
+    }
+
+    .appointment-main {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .appointment-service h4 {
+      margin: 0 0 5px;
+
+      font-family: 'Playfair Display', serif;
+
+      font-size: 18px;
+
+      color: var(--primary);
+    }
+
+    .appointment-service p {
+      margin: 3px 0;
+
+      font-size: 13px;
+
+      color: var(--smoke);
+    }
+
+    .appointment-price {
+      text-align: right;
+
+      white-space: nowrap;
+    }
+
+    .appointment-price strong {
+      display: block;
+
+      font-size: 16px;
+
+      color: var(--primary);
+    }
+
+    .appointment-price span {
+      font-size: 11px;
+
+      color: var(--smoke);
+    }
+
+    .appointment-details {
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 16px;
+
+      margin-top: 14px;
+
+      padding-top: 12px;
+
+      border-top: 1px dashed #d9d0c8;
+    }
+
+    .detail {
+      display: flex;
+
+      align-items: center;
+
+      gap: 7px;
+
+      font-size: 12px;
+
+      color: var(--smoke);
+    }
+
+    .detail i {
+      color: var(--secondary);
+
+      width: 14px;
+
+      text-align: center;
+    }
+
+    /* =========================================================
+       CAMPOS
+       ========================================================= */
+
+    .field {
+      margin-bottom: 24px;
+    }
+
+    .field-label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.6px;
+
+      color: var(--smoke);
+    }
+
+    .required .field-label::after {
+      content: " *";
+
+      color: #c62828;
+    }
+
+    .field-hint {
+      margin-top: 6px;
+
+      font-size: 11px;
+
+      color: var(--smoke);
+    }
+
+    /* =========================================================
+       FECHA
+       ========================================================= */
+
+    .date-input-wrapper {
+      position: relative;
+    }
+
+    .date-input-wrapper i {
+      position: absolute;
+
+      left: 13px;
+      top: 50%;
+
+      transform: translateY(-50%);
+
+      color: var(--secondary);
+
+      pointer-events: none;
+    }
+
+    .input {
+      width: 100%;
+
+      height: 44px;
+
+      padding: 0 14px 0 38px;
+
+      background: var(--white);
+
+      border: 1px solid var(--line);
+
+      border-radius: 6px;
+
+      outline: none;
+
+      font-family: inherit;
+
+      font-size: 13px;
+
+      color: var(--primary);
+
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input:hover {
+      border-color: #c9c9c9;
+    }
+
+    .input:focus {
+      border-color: var(--secondary);
+
+      box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.12);
+    }
+
+    /* =========================================================
+       HORARIOS
+       ========================================================= */
+
+    .time-section {
+      margin-top: 5px;
+    }
+
+    .time-period {
+      margin-bottom: 18px;
+    }
+
+    .time-period-title {
+      display: flex;
+
+      align-items: center;
+
+      gap: 7px;
+
+      margin-bottom: 9px;
+
+      font-size: 12px;
+
+      font-weight: 600;
+
+      color: var(--primary);
+    }
+
+    .time-period-title i {
+      color: var(--secondary);
+
+      font-size: 11px;
+    }
+
+    .time-grid {
+      display: grid;
+
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+
+      gap: 7px;
+    }
+
+    .time-slot {
+      min-height: 40px;
+
+      padding: 8px 6px;
+
+      border: 1px solid var(--line);
+
+      border-radius: 6px;
+
+      background: var(--white);
+
+      color: var(--primary);
+
+      font-family: inherit;
+
+      font-size: 12px;
+
+      cursor: pointer;
+
+      transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+    }
+
+    .time-slot:hover:not(:disabled) {
+      border-color: var(--secondary);
+
+      background: var(--sand);
+
+      transform: translateY(-1px);
+    }
+
+    .time-slot.seleccionado {
+      background: var(--secondary);
+
+      border-color: var(--secondary);
+
+      color: var(--white);
+
+      font-weight: 700;
+
+      box-shadow: 0 3px 8px rgba(197, 160, 89, 0.22);
+    }
+
+    .time-slot.ocupado,
+    .time-slot:disabled {
+      background: #f1f1f1;
+
+      border-color: #e4e4e4;
+
+      color: #b5b5b5;
+
+      cursor: not-allowed;
+
+      text-decoration: line-through;
+    }
+
+    .no-slots {
+      padding: 18px;
+
+      border: 1px dashed var(--line);
+
+      border-radius: 7px;
+
+      text-align: center;
+
+      color: var(--smoke);
+
+      font-size: 12px;
+
+      background: #fafafa;
+    }
+
+    .no-slots i {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 18px;
+
+      color: var(--secondary);
+    }
+
+    /* =========================================================
+       RESUMEN NUEVA CITA
+       ========================================================= */
+
+    .new-appointment {
+      display: none;
+
+      margin-top: 20px;
+
+      padding: 14px 16px;
+
+      border-radius: 7px;
+
+      background: var(--success-bg);
+
+      border: 1px solid #d5e7d5;
+    }
+
+    .new-appointment.visible {
+      display: block;
+
+      animation: summaryIn 0.2s ease;
+    }
+
+    @keyframes summaryIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .new-appointment-title {
+      margin-bottom: 9px;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 7px;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.5px;
+
+      color: var(--success);
+    }
+
+    .new-appointment-grid {
+      display: grid;
+
+      grid-template-columns: repeat(2, 1fr);
+
+      gap: 8px;
+    }
+
+    .summary-item {
+      font-size: 12px;
+
+      color: var(--primary);
+    }
+
+    .summary-item span {
+      color: var(--smoke);
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    .modal-footer {
+      padding: 15px 22px;
+
+      border-top: 1px solid var(--line);
+
+      display: flex;
+
+      justify-content: flex-end;
+
+      gap: 9px;
+
+      background: var(--white);
+    }
+
+    .btn {
+      height: 38px;
+
+      padding: 0 17px;
+
+      border-radius: 6px;
+
+      border: none;
+
+      font-family: inherit;
+
+      font-size: 12px;
+
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--secondary);
+
+      color: var(--white);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--brass-dim);
+    }
+
+    .btn-primary:disabled {
+      background: #d8d8d8;
+
+      color: #999;
+
+      cursor: not-allowed;
+    }
+
+    .btn-ghost {
+      background: transparent;
+
+      color: var(--primary);
+
+      border: 1px solid var(--line);
+    }
+
+    .btn-ghost:hover {
+      background: var(--sand);
+
+      border-color: #d2d2d2;
+    }
+
+    /* =========================================================
+       FLATPICKR
+       ========================================================= */
+
+    .flatpickr-calendar {
+      font-family: 'Hanken Grotesk', sans-serif;
+
+      border-radius: 8px;
+
+      box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.15);
+
+      border: 1px solid var(--line);
+    }
+
+    .flatpickr-months {
+      padding: 5px 0;
+    }
+
+    .flatpickr-current-month {
+      font-size: 14px;
+
+      font-weight: 700;
+    }
+
+    .flatpickr-weekdays {
+      font-weight: 700;
+
+      color: var(--smoke);
+    }
+
+    .flatpickr-day {
+      border-radius: 5px;
+    }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover {
+      background: var(--secondary);
+
+      border-color: var(--secondary);
+
+      color: var(--white);
+    }
+
+    .flatpickr-day:hover {
+      background: var(--sand);
+
+      color: var(--primary);
+    }
+
+    .flatpickr-day.today {
+      border-color: var(--secondary);
+    }
+
+    .flatpickr-day.flatpickr-disabled,
+    .flatpickr-day.flatpickr-disabled:hover {
+      color: #ccc;
+
+      cursor: not-allowed;
+    }
+
+    .flatpickr-prev-month,
+    .flatpickr-next-month {
+      color: var(--primary);
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @media (max-width: 600px) {
+
+      .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+      }
+
+      .modal {
+        width: 100%;
+
+        max-height: 94vh;
+
+        border-radius: 12px 12px 0 0;
+      }
+
+      .modal-body {
+        padding: 18px;
+      }
+
+      .appointment-main {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .appointment-price {
+        text-align: left;
+      }
+
+      .time-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .new-appointment-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-footer {
+        padding: 13px 18px;
+      }
+
+      .modal-footer .btn {
+        flex: 1;
+      }
+    }
+
+    @media (max-width: 380px) {
+
+      .time-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================================================
+       MODAL
+       ========================================================= -->
+
+  <div
+    id="modal-reprogramar"
+    class="modal-overlay"
+  >
+
+    <div class="modal">
+
+      <!-- HEADER -->
+      <div class="modal-header">
+
+        <div class="modal-title">
+          <i class="fa-regular fa-calendar-plus"></i>
+
+          <h2>Reprogramar cita</h2>
+        </div>
+
+        <button
+          class="icon-btn"
+          id="btn-cerrar"
+          aria-label="Cerrar"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+
+      <!-- BODY -->
+      <div class="modal-body">
+
+        <!-- =====================================================
+             CITA ACTUAL
+             ===================================================== -->
+
+        <p class="section-title">
+          Cita actual
+        </p>
+
+        <div class="appointment-info">
+
+          <div class="appointment-main">
+
+            <div class="appointment-service">
+
+              <h4>
+                Mid Fade
+              </h4>
+
+              <p>
+                Desvanecido medio, el clásico de la casa
+              </p>
+
+            </div>
+
+            <div class="appointment-price">
+
+              <strong>
+                $18.000
+              </strong>
+
+              <span>
+                40 minutos
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="appointment-details">
+
+            <div class="detail">
+              <i class="fa-solid fa-user"></i>
+              Camilo Restrepo
+            </div>
+
+            <div class="detail">
+              <i class="fa-regular fa-calendar"></i>
+              18 de agosto
+            </div>
+
+            <div class="detail">
+              <i class="fa-regular fa-clock"></i>
+              14:00
+            </div>
+
+            <div class="detail">
+              <i class="fa-solid fa-clock"></i>
+              10:00 - 19:00
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             NUEVA FECHA
+             ===================================================== -->
+
+        <div class="field required">
+
+          <label
+            class="field-label"
+            for="fecha-reprogramar"
+          >
+            Nueva fecha
+          </label>
+
+          <div class="date-input-wrapper">
+
+            <i class="fa-regular fa-calendar"></i>
+
+            <input
+              type="text"
+              class="input"
+              id="fecha-reprogramar"
+              placeholder="Selecciona una fecha"
+              readonly
+            >
+
+          </div>
+
+          <div class="field-hint">
+            Selecciona un día para consultar los horarios disponibles.
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             HORARIOS
+             ===================================================== -->
+
+        <div class="field required">
+
+          <label class="field-label">
+            Horario disponible
+          </label>
+
+          <div
+            id="horarios-container"
+            class="time-section"
+          >
+
+            <div class="no-slots">
+
+              <i class="fa-regular fa-calendar"></i>
+
+              Selecciona una fecha para consultar los horarios.
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             RESUMEN
+             ===================================================== -->
+
+        <div
+          id="new-appointment"
+          class="new-appointment"
+        >
+
+          <div class="new-appointment-title">
+
+            <i class="fa-solid fa-circle-check"></i>
+
+            Nueva programación
+
+          </div>
+
+
+          <div class="new-appointment-grid">
+
+            <div class="summary-item">
+
+              <span>Fecha:</span>
+
+              <strong id="resumen-fecha">
+                -
+              </strong>
+
+            </div>
+
+            <div class="summary-item">
+
+              <span>Hora:</span>
+
+              <strong id="resumen-hora">
+                -
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+
+        <button
+          class="btn btn-ghost"
+          id="btn-cancelar"
+        >
+          Cancelar
+        </button>
+
+        <button
+          class="btn btn-primary"
+          id="btn-confirmar"
+          disabled
+        >
+          Confirmar reprogramación
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    /*
+     * ==========================================================
+     * DATOS DE EJEMPLO
+     * ==========================================================
+     *
+     * En tu aplicación real estos datos vendrían del backend.
+     */
+
+    const horariosPorFecha = {
+
+      "18-08-2026": {
+        mañana: [
+          { hora: "10:00", disponible: false },
+          { hora: "10:30", disponible: true },
+          { hora: "11:00", disponible: true },
+          { hora: "11:30", disponible: false },
+          { hora: "12:00", disponible: true },
+          { hora: "12:30", disponible: true }
+        ],
+
+        tarde: [
+          { hora: "13:00", disponible: false },
+          { hora: "13:30", disponible: true },
+          { hora: "14:00", disponible: true },
+          { hora: "14:30", disponible: false },
+          { hora: "15:00", disponible: true },
+          { hora: "15:30", disponible: true },
+          { hora: "16:00", disponible: true },
+          { hora: "16:30", disponible: false },
+          { hora: "17:00", disponible: true },
+          { hora: "17:30", disponible: true },
+          { hora: "18:00", disponible: true }
+        ]
+      },
+
+      "19-08-2026": {
+        mañana: [
+          { hora: "10:00", disponible: true },
+          { hora: "10:30", disponible: true },
+          { hora: "11:00", disponible: false },
+          { hora: "11:30", disponible: true },
+          { hora: "12:00", disponible: true }
+        ],
+
+        tarde: [
+          { hora: "13:00", disponible: true },
+          { hora: "13:30", disponible: false },
+          { hora: "14:00", disponible: true },
+          { hora: "14:30", disponible: true },
+          { hora: "15:00", disponible: false },
+          { hora: "15:30", disponible: true },
+          { hora: "16:00", disponible: true },
+          { hora: "16:30", disponible: true },
+          { hora: "17:00", disponible: false },
+          { hora: "17:30", disponible: true }
+        ]
+      }
+
+    };
+
+
+    /*
+     * ==========================================================
+     * ESTADO
+     * ==========================================================
+     */
+
+    let fechaSeleccionada = null;
+
+    let horaSeleccionada = null;
+
+
+    /*
+     * ==========================================================
+     * ELEMENTOS
+     * ==========================================================
+     */
+
+    const fechaInput =
+      document.getElementById("fecha-reprogramar");
+
+    const horariosContainer =
+      document.getElementById("horarios-container");
+
+    const resumen =
+      document.getElementById("new-appointment");
+
+    const resumenFecha =
+      document.getElementById("resumen-fecha");
+
+    const resumenHora =
+      document.getElementById("resumen-hora");
+
+    const btnConfirmar =
+      document.getElementById("btn-confirmar");
+
+
+    /*
+     * ==========================================================
+     * FLATPICKR
+     * ==========================================================
+     */
+
+    flatpickr("#fecha-reprogramar", {
+
+      locale: "es",
+
+      dateFormat: "d-m-Y",
+
+      minDate: "today",
+
+      disableMobile: true,
+
+      onChange: function(selectedDates, dateStr) {
+
+        if (!selectedDates.length) {
+          return;
+        }
+
+        fechaSeleccionada = dateStr;
+
+        horaSeleccionada = null;
+
+        resumen.classList.remove("visible");
+
+        btnConfirmar.disabled = true;
+
+        cargarHorarios(dateStr);
+      }
+
+    });
+
+
+    /*
+     * ==========================================================
+     * CARGAR HORARIOS
+     * ==========================================================
+     */
+
+    function cargarHorarios(fecha) {
+
+      horariosContainer.innerHTML = "";
+
+      const datos =
+        horariosPorFecha[fecha];
+
+
+      /*
+       * Simulamos que no hay horarios.
+       */
+
+      if (!datos) {
+
+        horariosContainer.innerHTML = `
+          <div class="no-slots">
+
+            <i class="fa-regular fa-calendar-xmark"></i>
+
+            No hay horarios disponibles para este día.
+
+          </div>
+        `;
+
+        return;
+      }
+
+
+      /*
+       * Mañana
+       */
+
+      if (datos.mañana?.length) {
+
+        horariosContainer.appendChild(
+          crearPeriodo(
+            "Mañana",
+            "fa-sun",
+            datos.mañana
+          )
+        );
+
+      }
+
+
+      /*
+       * Tarde
+       */
+
+      if (datos.tarde?.length) {
+
+        horariosContainer.appendChild(
+          crearPeriodo(
+            "Tarde",
+            "fa-cloud-sun",
+            datos.tarde
+          )
+        );
+
+      }
+
+    }
+
+
+    /*
+     * ==========================================================
+     * CREAR PERIODO DE HORARIOS
+     * ==========================================================
+     */
+
+    function crearPeriodo(
+      titulo,
+      icono,
+      horarios
+    ) {
+
+      const periodo =
+        document.createElement("div");
+
+      periodo.className =
+        "time-period";
+
+
+      const title =
+        document.createElement("div");
+
+      title.className =
+        "time-period-title";
+
+      title.innerHTML = `
+        <i class="fa-solid ${icono}"></i>
+        ${titulo}
+      `;
+
+
+      const grid =
+        document.createElement("div");
+
+      grid.className =
+        "time-grid";
+
+
+      horarios.forEach(slot => {
+
+        const button =
+          document.createElement("button");
+
+        button.type = "button";
+
+        button.className =
+          "time-slot";
+
+        button.textContent =
+          slot.hora;
+
+
+        /*
+         * Horario ocupado
+         */
+
+        if (!slot.disponible) {
+
+          button.disabled = true;
+
+          button.classList.add("ocupado");
+
+        }
+
+
+        /*
+         * Horario disponible
+         */
+
+        if (slot.disponible) {
+
+          button.addEventListener(
+            "click",
+            () => seleccionarHora(
+              button,
+              slot.hora
+            )
+          );
+
+        }
+
+
+        grid.appendChild(button);
+
+      });
+
+
+      periodo.appendChild(title);
+
+      periodo.appendChild(grid);
+
+      return periodo;
+    }
+
+
+    /*
+     * ==========================================================
+     * SELECCIONAR HORA
+     * ==========================================================
+     */
+
+    function seleccionarHora(
+      button,
+      hora
+    ) {
+
+      /*
+       * Quitar selección anterior
+       */
+
+      document
+        .querySelectorAll(".time-slot.seleccionado")
+        .forEach(slot => {
+
+          slot.classList.remove(
+            "seleccionado"
+          );
+
+        });
+
+
+      /*
+       * Seleccionar nueva hora
+       */
+
+      button.classList.add(
+        "seleccionado"
+      );
+
+
+      horaSeleccionada =
+        hora;
+
+
+      /*
+       * Mostrar resumen
+       */
+
+      resumenFecha.textContent =
+        formatearFecha(fechaSeleccionada);
+
+      resumenHora.textContent =
+        hora;
+
+
+      resumen.classList.add(
+        "visible"
+      );
+
+
+      /*
+       * Habilitar confirmación
+       */
+
+      btnConfirmar.disabled =
+        false;
+
+    }
+
+
+    /*
+     * ==========================================================
+     * FORMATEAR FECHA
+     * ==========================================================
+     */
+
+    function formatearFecha(fecha) {
+
+      const partes =
+        fecha.split("-");
+
+      const dia =
+        parseInt(partes[0]);
+
+      const mes =
+        parseInt(partes[1]);
+
+      const anio =
+        parseInt(partes[2]);
+
+
+      const fechaObj =
+        new Date(
+          anio,
+          mes - 1,
+          dia
+        );
+
+
+      return fechaObj.toLocaleDateString(
+        "es-CO",
+        {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        }
+      );
+
+    }
+
+
+    /*
+     * ==========================================================
+     * CONFIRMAR
+     * ==========================================================
+     */
+
+    btnConfirmar.addEventListener(
+      "click",
+      async function() {
+
+        if (
+          !fechaSeleccionada ||
+          !horaSeleccionada
+        ) {
+          return;
+        }
+
+
+        /*
+         * AQUÍ irá posteriormente tu API:
+         *
+         * PATCH /citas/{id_cita}/reprogramar
+         *
+         * {
+         *    "fecha_hora":
+         *       "2026-08-19T15:30:00"
+         * }
+         */
+
+
+        console.log(
+          "Reprogramando cita:",
+          {
+            fecha: fechaSeleccionada,
+            hora: horaSeleccionada
+          }
+        );
+
+
+        btnConfirmar.disabled =
+          true;
+
+        btnConfirmar.textContent =
+          "Guardando...";
+
+
+        /*
+         * Simulación de petición
+         */
+
+        await new Promise(
+          resolve =>
+            setTimeout(resolve, 800)
+        );
+
+
+        btnConfirmar.textContent =
+          "Cita reprogramada ✓";
+
+
+        setTimeout(() => {
+
+          cerrarModal();
+
+        }, 900);
+
+      }
+    );
+
+
+    /*
+     * ==========================================================
+     * CERRAR MODAL
+     * ==========================================================
+     */
+
+    function cerrarModal() {
+
+      document
+        .getElementById(
+          "modal-reprogramar"
+        )
+        .style.display = "none";
+
+    }
+
+
+    document
+      .getElementById("btn-cerrar")
+      .addEventListener(
+        "click",
+        cerrarModal
+      );
+
+
+    document
+      .getElementById("btn-cancelar")
+      .addEventListener(
+        "click",
+        cerrarModal
+      );
+
+
+    /*
+     * ==========================================================
+     * CERRAR CON ESC
+     * ==========================================================
+     */
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (event.key === "Escape") {
+
+          cerrarModal();
+
+        }
+
+      }
+    );
+
+
+    /*
+     * ==========================================================
+     * CERRAR HACIENDO CLICK FUERA
+     * ==========================================================
+     */
+
+    document
+      .getElementById("modal-reprogramar")
+      .addEventListener(
+        "click",
+        function(event) {
+
+          if (
+            event.target === this
+          ) {
+
+            cerrarModal();
+
+          }
+
+        }
+      );
+
+  </script>
+
+</body>
+</html>

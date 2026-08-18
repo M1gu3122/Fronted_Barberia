@@ -1,0 +1,19 @@
+/* ============================================================
+   Components — Autocomplete
+   ============================================================ */
+
+.autocomplete-wrap { position: relative; }
+.autocomplete-list {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60;
+  max-height: 220px; overflow-y: auto;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 9px;
+  box-shadow: var(--shadow-pop); padding: 6px;
+}
+.autocomplete-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 11px; border-radius: 7px; cursor: pointer;
+}
+.autocomplete-item:hover,
+.autocomplete-item.activo { background: var(--sand); }
+.autocomplete-item .ac-nombre { font-weight: 600; font-size: 13.5px; color: var(--ink); }
+.autocomplete-item .ac-sub { font-size: 12px; color: var(--smoke); }

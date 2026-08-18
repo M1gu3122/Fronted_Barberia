@@ -1,0 +1,64 @@
+/* ============================================================
+   Views — Admin Specific Styles
+   ============================================================ */
+
+/* Filters bar */
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filters .input, .filters .select { width: auto; min-width: 150px; }
+
+/* KPI grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+
+/* Charts */
+.bar-chart { display: flex; align-items: flex-end; gap: 14px; height: 180px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.bar-track { width: 100%; max-width: 34px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, var(--brass-light), var(--brass)); transition: height .6s cubic-bezier(.2,.8,.2,1); min-height: 3px; position: relative; }
+.bar-track:hover { filter: brightness(1.05); }
+.bar-track .bar-val { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 10.5px; font-weight: 700; color: var(--brass-dim); }
+.bar-label { font-size: 11px; color: var(--mist); font-weight: 600; }
+
+.donut { width: 168px; height: 168px; border-radius: 50%; position: relative; }
+.donut-center { position: absolute; inset: 26px; border-radius: 50%; background: var(--paper); display: grid; place-items: center; text-align: center; }
+.legend { display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.legend-val { margin-left: auto; font-weight: 700; }
+
+/* Appointment form — servicios adicionales y total */
+.adds-summary {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  background: var(--sand); border: 1px solid var(--line); border-radius: 9px;
+  cursor: pointer; list-style: none; font-size: 13.5px; font-weight: 600; color: var(--ink); user-select: none;
+}
+.adds-summary::-webkit-details-marker { display: none; }
+.adds-summary em { font-style: normal; font-weight: 500; color: var(--smoke); font-size: 12px; }
+.adds-chevron { margin-left: auto; color: var(--smoke); transition: transform .2s ease; }
+details[open] .adds-chevron { transform: rotate(180deg); }
+
+.adds-box { display: grid; gap: 6px; margin-top: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 9px; }
+.adds-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; cursor: pointer; }
+.adds-item:hover { background: var(--sand); }
+.adds-item input[type="checkbox"] { accent-color: var(--brass); width: 16px; height: 16px; }
+.adds-item .adds-nombre { font-weight: 600; font-size: 13px; color: var(--ink); }
+.adds-item .adds-precio { margin-left: auto; font-size: 12px; color: var(--smoke); }
+
+.total-estimado {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px; padding: 10px 12px;
+  background: var(--sand); border: 1px solid var(--line); border-radius: 9px;
+}
+.total-estimado span { font-size: 12px; color: var(--smoke); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.total-estimado b { font-size: 15px; color: var(--brass); }
+
+/* Citas form autocomplete is in components/autocomplete.css */
+
+/* Responsive admin */
+@media (max-width: 640px) {
+  .filters { gap: 8px; }
+  .filters .input, .filters .select { width: 100%; min-width: 0; flex: 1 1 100%; }
+  .table-pagination { flex-wrap: wrap; }
+  .agenda { padding-left: 60px; }
+  .agenda-hour { width: 48px; font-size: 11px; }
+  .agenda-item::before { left: -46px; width: 34px; }
+  .agenda-item::after { left: -50px; }
+}

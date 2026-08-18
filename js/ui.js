@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    Barberia El Corte Perfecto — Libreria de componentes UI
    Badges, toasts, modales, confirmaciones, dropdowns, skeletons
    ============================================================ */
@@ -18,12 +18,12 @@ window.UI = (function () {
 
   function badge(estado) {
     var e = ESTADOS[estado] || { label: estado, cls: "badge-neutral" };
-    return '<span class="badge ' + e.cls + '">' + e.label + "</span>";
+    return `<span class="badge ${e.cls}">${e.label}</span>`;
   }
 
   function avatar(nombre, extra) {
     var cls = extra || "";
-    return '<span class="avatar ' + cls + '">' + DB.getIniciales(nombre) + "</span>";
+    return `<span class="avatar ${cls}">${DB.getIniciales(nombre)}</span>`;
   }
 
   /* ---------- Toasts ---------- */
@@ -42,11 +42,11 @@ window.UI = (function () {
     var iconos = { success: "\u2713", error: "\u21BB", info: "\u24D8" };
     var el = document.createElement("div");
     el.className = "toast " + tipo;
-    el.innerHTML =
-      '<div class="toast-icon">' + (iconos[tipo] || "\u24D8") + "</div>" +
-      '<div class="toast-body"><div class="toast-title">' + titulo + "</div>" +
-      '<div class="toast-msg">' + mensaje + "</div></div>" +
-      '<button class="toast-close" aria-label="Cerrar">&times;</button>';
+el.innerHTML = `
+      <div class="toast-icon">${iconos[tipo] || "\u24D8"}</div>
+      <div class="toast-body"><div class="toast-title">${titulo}</div>
+      <div class="toast-msg">${mensaje}</div></div>
+      <button class="toast-close" aria-label="Cerrar">&times;</button>`;
     ensureWrap().appendChild(el);
     el.querySelector(".toast-close").addEventListener("click", function () { dismiss(el); });
     if (window.gsap) {
@@ -69,18 +69,18 @@ window.UI = (function () {
   function modal(opciones) {
     var overlay = document.createElement("div");
     overlay.className = "modal-overlay";
-    overlay.innerHTML =
-      '<div class="modal" role="dialog" aria-modal="true">' +
-      '<div class="modal-header">' +
-      (opciones.icon ? '<span class="kpi-ico" style="background:var(--bone);color:var(--brass-dim);">' + opciones.icon + "</span>" : "") +
-      '<div><div class="modal-title">' + (opciones.titulo || "") + "</div>" +
-      (opciones.subtitulo ? '<div class="card-sub">' + opciones.subtitulo + "</div>" : "") +
-      "</div>" +
-      '<button class="icon-btn modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>' +
-      "</div>" +
-      '<div class="modal-body">' + (opciones.body || "") + "</div>" +
-      (opciones.footer ? '<div class="modal-footer">' + opciones.footer + "</div>" : "") +
-      "</div>";
+overlay.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+      ${opciones.icon ? `<span class="kpi-ico" style="background:var(--bone);color:var(--brass-dim);">${opciones.icon}</span>` : ""}
+      <div><div class="modal-title">${opciones.titulo || ""}</div>
+      ${opciones.subtitulo ? `<div class="card-sub">${opciones.subtitulo}</div>` : ""}
+      </div>
+      <button class="icon-btn modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">${opciones.body || ""}</div>
+      ${opciones.footer ? `<div class="modal-footer">${opciones.footer}</div>` : ""}
+      </div>`;
     document.body.appendChild(overlay);
     openModals++;
     document.body.style.overflow = "hidden";
@@ -98,38 +98,42 @@ window.UI = (function () {
       if (opciones.onClose) opciones.onClose();
     }
     overlay.querySelector(".modal-close").addEventListener("click", close);
+    overlay.addEventListener("mousedown", function (e) { overlay._downOnOverlay = (e.target === overlay); });
+    overlay.addEventListener("mouseup", function (e) { overlay._upOnOverlay = (e.target === overlay); });
     overlay.addEventListener("click", function (e) {
-      if (e.target === overlay && !opciones.cerrarFuera === false) close();
-      if (e.target === overlay) close();
+      if (overlay._downOnOverlay && overlay._upOnOverlay) close();
     });
     return { overlay: overlay, close: close, body: overlay.querySelector(".modal-body") };
   }
 
-  /* ---------- Confirm dialog ---------- */
+/* ---------- Confirm dialog ---------- */
   function confirm(opciones) {
-    return modal({
-      icon: '<i class="fas ' + (opciones.icon || "fa-triangle-exclamation") + '"></i>',
+    console.log("[UI.confirm] Llamando modal con opciones:", { titulo: opciones.titulo, mensaje: opciones.mensaje, tieneOnConfirm: typeof opciones.onConfirm });
+    var m = modal({
+      icon: `<i class="fas ${opciones.icon || "fa-triangle-exclamation"}"></i>`,
       titulo: opciones.titulo || "Confirmar accion",
       subtitulo: opciones.subtitulo,
       body:
-        '<div class="confirm-ico ' + (opciones.tipo || "warn") + '">' +
-        '<i class="fas ' + (opciones.icono || "fa-triangle-exclamation") + '"></i></div>' +
-        '<div style="font-size:14px;color:var(--smoke);">' + (opciones.mensaje || "Esta accion no se puede deshacer.") + "</div>",
+        `<div class="confirm-ico ${opciones.tipo || "warn"}">` +
+        `<i class="fas ${opciones.icono || "fa-triangle-exclamation"}"></i></div>` +
+        `<div style="font-size:14px;color:var(--smoke);">${opciones.mensaje || "Esta accion no se puede deshacer."}</div>`,
       footer:
-        '<button class="btn btn-ghost" data-accion="cancelar">Cancelar</button>' +
-        '<button class="btn btn-primary" data-accion="aceptar" style="background:var(--st-cancelada);color:#fff;">' +
-        (opciones.confirmarTexto || "Confirmar") + "</button>",
+        `<button class="btn btn-ghost" data-accion="cancelar">Cancelar</button>` +
+        `<button class="btn btn-primary" data-accion="aceptar" 
+style="background:var(--st-cancelada);color:#fff;">` +
+        `${opciones.confirmarTexto || "Confirmar"}</button>`,
       onClose: opciones.onClose,
       cerrarFuera: true
     });
+    console.log("[UI.confirm] Modal creado, openModals:", openModals);
     // enlace de botones
-    var m = document.body.lastElementChild;
+    var modalEl = document.body.lastElementChild;
     setTimeout(function () {
-      var btns = m.querySelectorAll("[data-accion]");
-      var okBtn = m.querySelector('[data-accion="aceptar"]');
-      var cancelBtn = m.querySelector('[data-accion="cancelar"]');
+      var btns = modalEl.querySelectorAll("[data-accion]");
+      var okBtn = modalEl.querySelector('[data-accion="aceptar"]');
+      var cancelBtn = modalEl.querySelector('[data-accion="cancelar"]');
       function done(accion) {
-        m.remove();
+        modalEl.remove();
         openModals = Math.max(0, openModals - 1);
         if (openModals === 0) document.body.style.overflow = "";
         if (accion === "aceptar" && opciones.onConfirm) opciones.onConfirm();
@@ -138,7 +142,7 @@ window.UI = (function () {
       }
       if (okBtn) okBtn.addEventListener("click", function () { done("aceptar"); });
       if (cancelBtn) cancelBtn.addEventListener("click", function () { done("cancelar"); });
-      m.addEventListener("click", function (e) { if (e.target === m) done("cancelar"); });
+      modalEl.addEventListener("click", function (e) { if (e.target === modalEl) done("cancelar"); });
     }, 10);
     return m;
   }
@@ -147,12 +151,12 @@ window.UI = (function () {
   function dropdown(triggerEl, opciones) {
     var menu = document.createElement("div");
     menu.className = "dropdown-menu";
-    menu.innerHTML = opciones.items.map(function (it) {
-      if (it.separador) return '<div class="dropdown-sep"></div>';
-      if (it.titulo) return '<div class="dropdown-head">' + it.titulo + "</div>";
+menu.innerHTML = opciones.items.map(function (it) {
+      if (it.separador) return `<div class="dropdown-sep"></div>`;
+      if (it.titulo) return `<div class="dropdown-head">${it.titulo}</div>`;
       var danger = it.danger ? " danger" : "";
-      return '<button class="dropdown-item' + danger + '" data-idx="' + (opciones.items.indexOf(it)) + '">' +
-        (it.icon ? '<i class="fas ' + it.icon + '"></i>' : "") + it.label + "</button>";
+      return `<button class="dropdown-item${danger}" data-idx="${opciones.items.indexOf(it)}">` +
+        `${it.icon ? `<i class="fas ${it.icon}"></i>` : ""}${it.label}</button>`;
     }).join("");
     document.body.appendChild(menu);
     var rect = triggerEl.getBoundingClientRect();
@@ -183,13 +187,13 @@ window.UI = (function () {
   /* ---------- Paginacion ---------- */
   function paginacion(total, pagina, porPagina, onPage) {
     var paginas = Math.ceil(total / porPagina) || 1;
-    var html = '<div class="table-pagination">' +
-      '<button class="page-btn" data-p="' + Math.max(1, pagina - 1) + '" ' + (pagina <= 1 ? "disabled" : "") + '><i class="fas fa-chevron-left"></i></button>';
+var html = `<div class="table-pagination">` +
+      `<button class="page-btn" data-p="${Math.max(1, pagina - 1)}" ${pagina <= 1 ? "disabled" : ""}><i class="fas fa-chevron-left"></i></button>`;
     for (var i = 1; i <= paginas; i++) {
-      html += '<button class="page-btn' + (i === pagina ? " active" : "") + '" data-p="' + i + '">' + i + "</button>";
+      html += `<button class="page-btn${i === pagina ? " active" : ""}" data-p="${i}">${i}</button>`;
     }
-    html += '<button class="page-btn" data-p="' + Math.min(paginas, pagina + 1) + '" ' + (pagina >= paginas ? "disabled" : "") + '><i class="fas fa-chevron-right"></i></button>' +
-      '<span class="cell-muted" style="margin-left:8px;">' + total + " registros</span></div>";
+    html += `<button class="page-btn" data-p="${Math.min(paginas, pagina + 1)}" ${pagina >= paginas ? "disabled" : ""}><i class="fas fa-chevron-right"></i></button>` +
+      `<span class="cell-muted" style="margin-left:8px;">${total} registros</span></div>`;
     setTimeout(function () {
       var cont = document.querySelector('[data-pagina-region="' + (onPage.region || "") + '"]');
     }, 0);
@@ -197,21 +201,29 @@ window.UI = (function () {
   }
 
   /* ---------- Skeleton ---------- */
-  function skeleton(alto, ancho) {
-    return '<div class="skeleton" style="height:' + (alto || 14) + "px;" + (ancho ? "width:" + ancho + "px;" : "") + '"></div>';
+function skeleton(alto, ancho) {
+    return `<div class="skeleton" style="height:${alto || 14}px;${ancho ? "width:" + ancho + "px;" : ""}"></div>`;
   }
 
   /* ---------- Selector de hora ---------- */
   function timeGrid(slots, seleccionada) {
-    return '<div class="time-grid">' + slots.map(function (s) {
+return `<div class="time-grid">` + slots.map(function (s) {
       var cls = "time-slot";
       if (!s.libre) cls += " taken";
       else if (s.hora === seleccionada) cls += " selected";
-      return '<button type="button" class="' + cls + '" data-hora="' + s.hora + '"' + (s.libre ? "" : " disabled") + ">" + s.hora + "</button>";
-    }).join("") + "</div>";
+      return `<button type="button" class="${cls}" data-hora="${s.hora}"${s.libre ? "" : " disabled"}>${s.hora}</button>`;
+    }).join("") + `</div>`;
   }
 
-  function estadoBadge(estado) { return badge(estado); }
+function estadoBadge(estado) { return badge(estado); }
+
+  /* ---------- Date picker (Flatpickr) ---------- */
+  function datepicker(el, opts) {
+    if (!el || !window.flatpickr) return null;
+    var base = { dateFormat: "Y-m-d", disableMobile: true };
+    for (var k in (opts || {})) base[k] = opts[k];
+    return flatpickr(el, base);
+  }
 
   return {
     ESTADOS: ESTADOS,
@@ -222,8 +234,23 @@ window.UI = (function () {
     confirm: confirm,
     dropdown: dropdown,
     paginacion: paginacion,
-    skeleton: skeleton,
+skeleton: skeleton,
     timeGrid: timeGrid,
-    estadoBadge: estadoBadge
+    estadoBadge: estadoBadge,
+    datepicker: datepicker
   };
 })();
+
+/* Toast global reutilizable: showToast(mensaje, tipo) -> delega a UI.toast */
+window.showToast = function (mensaje, tipo) {
+  tipo = tipo || "info";
+  if (window.UI && typeof window.UI.toast === "function") {
+    return window.UI.toast(mensaje, "", tipo);
+  }
+  var el = document.createElement("div");
+  el.className = "toast toast-" + tipo;
+  el.textContent = mensaje;
+  document.body.appendChild(el);
+  setTimeout(function () { el.remove(); }, 4200);
+  return el;
+};

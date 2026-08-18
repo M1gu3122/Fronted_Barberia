@@ -8,58 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/main.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <style>
-        body { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
-        .auth-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; width: 100%; position: relative; z-index: 1; }
-        @media (min-width: 1024px) {
-            .auth-shell { grid-template-columns: 1.05fr 1fr; }
-        }
-        .auth-bg {
-            position: fixed; inset: 0; z-index: 0; overflow: hidden;
-        }
-        .auth-video {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            object-fit: cover;
-        }
-        .auth-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(160deg, rgba(16,18,18,.62) 0%, rgba(20,20,20,.48) 50%, rgba(28,23,18,.76) 100%);
-        }
-        .auth-hero {
-            display: none; position: relative; overflow: hidden;
-            background: transparent;
-            color: #eee; padding: 56px;
-        }
-        @media (min-width: 1024px) { .auth-hero { display: flex; flex-direction: column; justify-content: space-between; } }
-        .auth-hero::after {
-            content: ""; position: absolute; right: -120px; bottom: -120px;
-            width: 420px; height: 420px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(197,160,89,.16), transparent 65%);
-        }
-        .auth-form-side { display: flex; flex-direction: column; justify-content: center; padding: 40px 32px; max-width: 460px; width: 100%; margin: 0 auto;
-            background: rgba(18,20,20,.74); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255,255,255,.12); border-radius: 18px;
-            box-shadow: 0 30px 80px rgba(0,0,0,.45); color: #f2efe7; }
-        .auth-form-side h1 { color: #fff; }
-        .auth-form-side p { color: #cfccc4; }
-        .auth-form-side .field-label { color: #cfccc4; }
-        .auth-form-side .req { color: var(--brass-light); }
-        .auth-form-side .input { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); color: #fff; }
-        .auth-form-side .input::placeholder { color: #8d8a82; }
-        .auth-form-side .input:focus { border-color: var(--brass-light); }
-        .auth-form-side .input-toggle { color: #cfccc4; }
-        .auth-form-side .field-error { color: #ffb4a8; }
-        .auth-form-side .btn-ghost { color: #f2efe7; border-color: rgba(255,255,255,.16); }
-        .auth-form-side .btn-ghost:hover { background: rgba(255,255,255,.08); color: #fff; }
-        .auth-form-side .divider-label { color: #8d8a82; }
-        .auth-form-side .divider-label::before, .auth-form-side .divider-label::after { background: rgba(255,255,255,.14); }
-        .auth-form-side a { color: var(--brass-light); }
-        @media (min-width: 768px) { .auth-form-side { padding: 56px 40px; } }
-    </style>
+    
 </head>
-    <body class="bg-sand">
+    <body class="bg-sand auth-body">
     <div class="auth-bg">
         <video class="auth-video" autoplay muted loop playsinline preload="auto">
             <source src="../assets/videos/barberia-login_a3e539e7.mp4" type="video/mp4">
@@ -160,58 +113,8 @@
     </div>
 
     <script src="../js/ui.js"></script>
+    <script src="../js/api.js"></script>
     <script src="../js/data.js"></script>
-    <script>
-        (function () {
-            "use strict";
-            // Entrada GSAP
-            if (window.gsap) {
-                gsap.from(".auth-form-side", { autoAlpha: 0, y: 24, duration: 0.5, ease: "power2.out", delay: 0.1 });
-                gsap.from(".auth-hero > *", { autoAlpha: 0, y: 16, duration: 0.5, stagger: 0.08, ease: "power2.out", delay: 0.15 });
-            }
-
-            var pass = document.getElementById("password");
-            var toggle = document.getElementById("toggle-pass");
-            toggle.addEventListener("click", function () {
-                var ver = pass.type === "password";
-                pass.type = ver ? "text" : "password";
-                toggle.innerHTML = ver ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
-            });
-
-            var form = document.getElementById("login-form");
-            form.addEventListener("submit", function (e) {
-                e.preventDefault();
-                var ok = true;
-                var email = document.getElementById("email");
-                var errs = form.querySelectorAll(".field-error");
-                errs.forEach(function (er) { er.style.display = "none"; });
-                email.classList.remove("is-error");
-                pass.classList.remove("is-error");
-                if (!email.value || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) {
-                    email.classList.add("is-error");
-                    errs[0].style.display = "flex"; ok = false;
-                }
-                if (!pass.value) {
-                    pass.classList.add("is-error");
-                    errs[1].style.display = "flex"; ok = false;
-                }
-                if (!ok) return;
-                var btn = document.getElementById("login-btn");
-                btn.classList.add("btn-loading");
-                setTimeout(function () {
-                    UI.toast("Bienvenido", "Iniciando sesion...", "success");
-                    location.href = "app.html?rol=cliente";
-                }, 800);
-            });
-
-            // Demo: acceso por rol
-            document.querySelectorAll("[data-rol]").forEach(function (b) {
-                b.addEventListener("click", function () {
-                    var rol = b.getAttribute("data-rol");
-                    location.href = "app.html?rol=" + rol;
-                });
-            });
-        })();
-    </script>
+    <script src="../js/login.js"></script>
 </body>
 </html>

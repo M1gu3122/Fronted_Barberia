@@ -8,8 +8,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="../css/main.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -58,26 +60,50 @@
     </div>
 
     <!-- Scripts -->
+    <script src="../js/api.js"></script>
+    <script src="../js/config.js"></script>
     <script src="../js/data.js"></script>
     <script src="../js/ui.js"></script>
     <script src="../js/app.js"></script>
-    <script src="../js/views-cliente.js"></script>
-    <script src="../js/views-barbero.js"></script>
-    <script src="../js/views-admin.js"></script>
-    <script src="../js/views-recepcion.js"></script>
+    <script src="../js/views/cliente/index.js"></script>
+    <script src="../js/views/barbero/index.js"></script>
+    <script src="../js/views/admin/dashboard.js"></script>
+    <script src="../js/views/admin/citas.js"></script>
+    <script src="../js/views/admin/clientes.js"></script>
+    <script src="../js/views/admin/barberos.js"></script>
+    <script src="../js/views/admin/servicios.js"></script>
+    <script src="../js/views/admin/horarios.js"></script>
+    <script src="../js/views/admin/servicios-realizados.js"></script>
+    <script src="../js/views/admin/reportes.js"></script>
+    <script src="../js/views/admin/perfil.js"></script>
+    <script src="../js/views/recepcion/index.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var rol = new URLSearchParams(location.search).get("rol") || "cliente";
-            var nombres = {
-                cliente: ["Carlos Lopez", "Cliente"],
-                barbero: ["Andres Duarte", "Barbero"],
-                admin: ["Andres Reyes", "Administrador"],
-                recepcion: ["Rosa Maria Cardenas", "Recepcionista"]
-            };
-            var n = nombres[rol] || nombres.cliente;
-            DB.setSesion(rol, n[0], n[1]);
+            var params = new URLSearchParams(location.search);
+            var sesion = JSON.parse(sessionStorage.getItem("sesion") || "null");
+            if (!sesion && !params.get("rol")) {
+                window.location.replace("login.html");
+                return;
+            }
+            // Backend: TokenResponse { access_token, nombres, apellidos, usuario, tipo_usuario }
+            function normalizarRol(t) {
+                if (!t) return "cliente";
+                t = String(t).trim().toLowerCase();
+                var alias = {
+                    administrador: "admin", admin: "admin",
+                    recepcionista: "recepcion", recepcion: "recepcion",
+                    barbero: "barbero", cliente: "cliente"
+                };
+                return alias[t] || "cliente";
+            }
+            var rol = normalizarRol(params.get("rol") || (sesion && sesion.tipo_usuario));
+            var nombre = sesion ? (sesion.nombres + " " + (sesion.apellidos || "")).trim() : "";
+            var rolNombre = rol.charAt(0).toUpperCase() + rol.slice(1);
+            sessionStorage.setItem("token", (sesion && sesion.access_token) || "");
+            DB.setSesion(rol, nombre || "Usuario", rolNombre);
             App.init();
         });
     </script>
-</body>
+
+    </body>
 </html>

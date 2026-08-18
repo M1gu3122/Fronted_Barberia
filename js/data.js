@@ -21,7 +21,7 @@ window.DB = (function () {
     return d.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   }
 
-  var servicios = [
+var servicios = [
     { id: 1, nombre: "Corte clasico", descripcion: "Corte tradicional a tijera y maquina, terminado con navaja", duracion: 30, precio: 15000, activo: true },
     { id: 2, nombre: "Low Fade", descripcion: "Desvanecido bajo con contorno definido", duracion: 40, precio: 18000, activo: true },
     { id: 3, nombre: "Mid Fade", descripcion: "Desvanecido medio, el clasico de la casa", duracion: 40, precio: 18000, activo: true },

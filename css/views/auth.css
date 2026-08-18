@@ -1,0 +1,53 @@
+/* ============================================================
+   Views — Auth Pages (Login, Registro, Recuperar)
+   ============================================================ */
+
+.auth-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; width: 100%; position: relative; z-index: 1; }
+@media (min-width: 1024px) { .auth-shell { grid-template-columns: 1.05fr 1fr; } }
+
+.auth-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+.auth-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.auth-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(16,18,18,.62) 0%, rgba(20,20,20,.48) 50%, rgba(28,23,18,.76) 100%); }
+
+.auth-hero { display: none; position: relative; overflow: hidden; background: transparent; color: #eee; padding: 56px; }
+@media (min-width: 1024px) { .auth-hero { display: flex; flex-direction: column; justify-content: space-between; } }
+
+.auth-form-side {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 40px 32px; max-width: 460px; width: 100%; margin: 0 auto;
+  background: rgba(18,20,20,.74); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-radius: 18px; color: #f2efe7;
+}
+.auth-form-side h1 { color: #fff; }
+.auth-form-side p { color: #cfccc4; }
+.auth-form-side .field-label { color: #cfccc4; }
+.auth-form-side .req { color: var(--brass-light); }
+.auth-form-side .input { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); color: #fff; }
+.auth-form-side .input::placeholder { color: #8d8a82; }
+.auth-form-side .input:focus { border-color: var(--brass-light); }
+.auth-form-side .input-toggle { color: #cfccc4; }
+.auth-form-side .field-error { color: #ffb4a8; }
+.auth-form-side .btn-ghost { color: #f2efe7; border-color: rgba(255,255,255,.16); }
+.auth-form-side .btn-ghost:hover { background: rgba(255,255,255,.08); color: #fff; }
+.auth-form-side .divider-label { color: #8d8a82; }
+.auth-form-side .divider-label::before, .auth-form-side .divider-label::after { background: rgba(255,255,255,.14); }
+.auth-form-side a { color: var(--brass-light); }
+@media (min-width: 768px) { .auth-form-side { padding: 56px 40px; } }
+
+/* Auth card (registro, recuperar) */
+.auth-card { width: 100%; max-width: 480px; background: var(--paper); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.4); overflow: hidden; }
+.auth-card .field-label { color: var(--ink); }
+.auth-card .req { color: var(--brass); }
+.auth-card .input { background: #fff; border-color: rgba(0,0,0,.12); color: var(--ink); }
+.auth-card .input::placeholder { color: #9a958a; }
+.auth-card .input:focus { border-color: var(--brass); }
+.auth-card .input-toggle { color: #6b665c; }
+.auth-card .field-error { color: #c0392b; }
+.auth-card .btn-ghost { color: var(--ink); border-color: rgba(0,0,0,.14); }
+.auth-card .btn-ghost:hover { background: rgba(0,0,0,.04); }
+.auth-card .divider-label { color: #8d8a82; }
+.auth-card .divider-label::before, .auth-card .divider-label::after { background: rgba(0,0,0,.12); }
+.auth-card a { color: var(--brass); }
+
+/* Auth body centering + fondo común */
+.auth-body { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(160deg, #101212 0%, #1c1712 100%); }

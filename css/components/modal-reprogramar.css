@@ -1,0 +1,180 @@
+/* ============================================================
+   Components — Modal Reprogramar Cita (from prueba.html)
+   ============================================================ */
+
+.reprog-modal-body {
+  /* Container for the reprogramar modal content */
+}
+
+.reprog-modal-body .section-title {
+  margin: 0 0 10px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--smoke);
+}
+
+.reprog-modal-body .appointment-info {
+  background: var(--sand);
+  border: 1px solid #eee4da;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.reprog-modal-body .appointment-main {
+  display: flex; justify-content: space-between; gap: 20px;
+}
+
+.reprog-modal-body .appointment-service h4 {
+  margin: 0 0 5px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 18px; color: var(--primary);
+}
+
+.reprog-modal-body .appointment-service p {
+  margin: 3px 0; font-size: 13px; color: var(--smoke);
+}
+
+.reprog-modal-body .appointment-price { text-align: right; white-space: nowrap; }
+.reprog-modal-body .appointment-price strong { display: block; font-size: 16px; color: var(--primary); }
+.reprog-modal-body .appointment-price span { font-size: 11px; color: var(--smoke); }
+
+.reprog-modal-body .appointment-details {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px dashed #d9d0c8;
+}
+
+.reprog-modal-body .detail {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--smoke);
+}
+.reprog-modal-body .detail i {
+  color: var(--brass); width: 14px; text-align: center;
+}
+
+.reprog-modal-body .field { margin-bottom: 24px; }
+.reprog-modal-body .field-label {
+  display: block; margin-bottom: 7px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--smoke);
+}
+.reprog-modal-body .required .field-label::after { content: " *"; color: #c62828; }
+.reprog-modal-body .field-hint { margin-top: 6px; font-size: 11px; color: var(--smoke); }
+
+.reprog-modal-body .date-input-wrapper { position: relative; }
+.reprog-modal-body .date-input-wrapper i {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--brass); pointer-events: none;
+}
+.reprog-modal-body .input {
+  width: 100%; height: 44px; padding: 0 14px 0 38px;
+  background: var(--white); border: 1px solid var(--line); border-radius: 6px;
+  outline: none; font-family: inherit; font-size: 13px; color: var(--primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.reprog-modal-body .input:hover { border-color: #c9c9c9; }
+.reprog-modal-body .input:focus { border-color: var(--brass); box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.12); }
+
+.reprog-modal-body .time-section { margin-top: 5px; }
+.reprog-modal-body .time-period { margin-bottom: 18px; }
+.reprog-modal-body .time-period-title {
+  display: flex; align-items: center; gap: 7px; margin-bottom: 9px;
+  font-size: 12px; font-weight: 600; color: var(--primary);
+}
+.reprog-modal-body .time-period-title i { color: var(--brass); font-size: 11px; }
+
+.reprog-modal-body .time-grid {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px;
+}
+
+.reprog-modal-body .time-slot {
+  min-height: 40px; padding: 8px 6px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--white); color: var(--primary); font-family: inherit; font-size: 12px;
+  cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.reprog-modal-body .time-slot:hover:not(:disabled) {
+  border-color: var(--brass); background: var(--sand); transform: translateY(-1px);
+}
+.reprog-modal-body .time-slot.seleccionado {
+  background: var(--brass); border-color: var(--brass); color: var(--white);
+  font-weight: 700; box-shadow: 0 3px 8px rgba(197, 160, 89, 0.22);
+}
+.reprog-modal-body .time-slot.ocupado,
+.reprog-modal-body .time-slot:disabled {
+  background: #f1f1f1; border-color: #e4e4e4; color: #b5b5b5;
+  cursor: not-allowed; text-decoration: line-through;
+}
+
+.reprog-modal-body .no-slots {
+  padding: 18px; border: 1px dashed var(--line); border-radius: 7px;
+  text-align: center; color: var(--smoke); font-size: 12px; background: #fafafa;
+}
+.reprog-modal-body .no-slots i { display: block; margin-bottom: 7px; font-size: 18px; color: var(--brass); }
+
+.reprog-modal-body .new-appointment {
+  display: none; margin-top: 20px; padding: 14px 16px;
+  border-radius: 7px; background: var(--st-completada-bg); border: 1px solid #d5e7d5;
+}
+.reprog-modal-body .new-appointment.visible { display: block; animation: summaryIn 0.2s ease; }
+@keyframes summaryIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+.reprog-modal-body .new-appointment-title {
+  margin-bottom: 9px; display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--st-completada);
+}
+.reprog-modal-body .new-appointment-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.reprog-modal-body .summary-item { font-size: 12px; color: var(--primary); }
+.reprog-modal-body .summary-item span { color: var(--smoke); }
+
+.reprog-modal-body .modal-footer {
+  padding: 15px 22px; border-top: 1px solid var(--line);
+  display: flex; justify-content: flex-end; gap: 9px; background: var(--white);
+}
+
+.reprog-modal-body .btn {
+  height: 38px; padding: 0 17px; border-radius: 6px; border: none;
+  font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.reprog-modal-body .btn-primary { background: var(--brass); color: var(--white); }
+.reprog-modal-body .btn-primary:hover:not(:disabled) { background: var(--brass-dim); }
+.reprog-modal-body .btn-primary:disabled { background: #d8d8d8; color: #999; cursor: not-allowed; }
+.reprog-modal-body .btn-ghost { background: transparent; color: var(--primary); border: 1px solid var(--line); }
+.reprog-modal-body .btn-ghost:hover { background: var(--sand); border-color: #d2d2d2; }
+
+/* Flatpickr overrides for reprogramar modal */
+.reprog-modal-body .flatpickr-calendar {
+  font-family: "Hanken Grotesk", sans-serif; border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); border: 1px solid var(--line);
+}
+.reprog-modal-body .flatpickr-months { padding: 5px 0; }
+.reprog-modal-body .flatpickr-current-month { font-size: 14px; font-weight: 700; }
+.reprog-modal-body .flatpickr-weekdays { font-weight: 700; color: var(--smoke); }
+.reprog-modal-body .flatpickr-day { border-radius: 5px; }
+.reprog-modal-body .flatpickr-day.selected,
+.reprog-modal-body .flatpickr-day.selected:hover { background: var(--brass); border-color: var(--brass); color: var(--white); }
+.reprog-modal-body .flatpickr-day:hover { background: var(--sand); color: var(--primary); }
+.reprog-modal-body .flatpickr-day.today { border-color: var(--brass); }
+.reprog-modal-body .flatpickr-day.flatpickr-disabled,
+.reprog-modal-body .flatpickr-day.flatpickr-disabled:hover { color: #ccc; cursor: not-allowed; }
+.reprog-modal-body .flatpickr-prev-month,
+.reprog-modal-body .flatpickr-next-month { color: var(--primary); }
+
+/* Responsive for reprogramar modal */
+@media (max-width: 600px) {
+  .reprog-modal-body .modal-overlay { padding: 0; align-items: flex-end; }
+  .reprog-modal-body .modal { width: 100%; max-height: 94vh; border-radius: 12px 12px 0 0; }
+  .reprog-modal-body .modal-body { padding: 18px; }
+  .reprog-modal-body .appointment-main { flex-direction: column; gap: 10px; }
+  .reprog-modal-body .appointment-price { text-align: left; }
+  .reprog-modal-body .time-grid { grid-template-columns: repeat(3, 1fr); }
+  .reprog-modal-body .new-appointment-grid { grid-template-columns: 1fr; }
+  .reprog-modal-body .modal-footer { padding: 13px 18px; }
+  .reprog-modal-body .modal-footer .btn { flex: 1; }
+}
+@media (max-width: 380px) {
+  .reprog-modal-body .time-grid { grid-template-columns: repeat(2, 1fr); }
+}

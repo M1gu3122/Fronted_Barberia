@@ -1,0 +1,18 @@
+/* ============================================================
+   Components — Steps / Wizard
+   ============================================================ */
+
+.steps { display: flex; align-items: center; gap: 8px; }
+.step { display: flex; align-items: center; gap: 8px; }
+.step-dot {
+  width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 13px; font-weight: 700; border: 2px solid var(--line); color: var(--mist);
+  background: var(--paper); transition: all .2s;
+}
+.step.active .step-dot { border-color: var(--charcoal); background: var(--charcoal); color: #fff; }
+.step.done .step-dot { border-color: var(--brass); background: var(--brass); color: #1a1304; }
+.step-label { font-size: 12px; font-weight: 600; color: var(--mist); white-space: nowrap; }
+.step.active .step-label { color: var(--ink); }
+.step.done .step-label { color: var(--brass-dim); }
+.step-line { flex: 1; height: 2px; background: var(--line); min-width: 16px; }
+.step.done + .step-line, .step.active + .step-line { background: var(--brass); }

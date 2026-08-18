@@ -1,0 +1,66 @@
+/* ============================================================
+   Barberia El Corte Perfecto — Design Tokens
+   ============================================================ */
+
+:root {
+  /* Colores base — palette carbon/latón/nogal/arena */
+  --charcoal: #121414;
+  --coal: #1A1C1C;
+  --coal-2: #222526;
+  --walnut: #4A3728;
+  --walnut-deep: #3A2A1D;
+  --walnut-line: #5a4532;
+  --brass: #C5A059;
+  --brass-light: #E9C176;
+  --brass-dim: #8E733E;
+  --sand: #F6F3ED;
+  --paper: #FFFFFF;
+  --bone: #ECE7DC;
+  --ink: #1C1E1E;
+  --smoke: #5C5A52;
+  --mist: #8A867C;
+  --line: #E2DCD0;
+
+  /* Estados de citas — semantic colors */
+  --st-pendiente: #B45309;
+  --st-pendiente-bg: #FFF3E2;
+  --st-confirmada: #0E7A5F;
+  --st-confirmada-bg: #E4F4EE;
+  --st-espera: #B45309;
+  --st-espera-bg: #FFF3E2;
+  --st-atencion: #1D6FA8;
+  --st-atencion-bg: #E6F1FA;
+  --st-completada: #2E7D32;
+  --st-completada-bg: #E9F5EA;
+  --st-cancelada: #C0392B;
+  --st-cancelada-bg: #FDECEB;
+
+  /* Spacing & sizing */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(18,20,20,.05), 0 1px 6px rgba(18,20,20,.04);
+  --shadow-pop: 0 8px 30px rgba(18,20,20,.14);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,.18);
+
+  /* Layout */
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 64px;
+
+  /* Transitions */
+  --transition-fast: 0.12s ease;
+  --transition-base: 0.16s ease;
+  --transition-slow: 0.25s ease;
+
+  /* Z-index scale */
+  --z-dropdown: 60;
+  --z-modal: 90;
+  --z-toast: 100;
+  --z-bottom-nav: 45;
+  --z-sidebar: 50;
+  --z-topbar: 30;
+}

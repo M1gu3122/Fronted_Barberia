@@ -1,0 +1,40 @@
+/* ============================================================
+   Components — Flatpickr Theme
+   ============================================================ */
+
+.flatpickr-calendar {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  font-family: "Hanken Grotesk", system-ui, sans-serif;
+  color: var(--ink);
+}
+.flatpickr-calendar.arrowTop:before { border-bottom-color: var(--line); }
+.flatpickr-calendar.arrowTop:after { border-bottom-color: var(--paper); }
+.flatpickr-months { padding: 8px 4px 4px; }
+.flatpickr-months .flatpickr-month { color: var(--ink); }
+.flatpickr-current-month { font-weight: 700; font-size: 15px; }
+.flatpickr-current-month input.cur-year { color: var(--ink); font-weight: 700; }
+.flatpickr-weekday { color: var(--smoke); font-weight: 600; font-size: 11px; }
+.flatpickr-day { color: var(--ink); border-radius: 8px; font-size: 13px; }
+.flatpickr-day:hover { background: var(--sand); color: var(--ink); border-color: transparent; }
+.flatpickr-day.today { border-color: var(--brass); }
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected:focus {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: #fff;
+  box-shadow: none;
+}
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+  color: var(--mist);
+  background: transparent;
+  border-color: transparent;
+}
+.flatpickr-prev-month,
+.flatpickr-next-month { color: var(--smoke); }
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover { color: var(--brass); }

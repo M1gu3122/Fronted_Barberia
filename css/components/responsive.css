@@ -1,0 +1,54 @@
+/* ============================================================
+   Components — Responsive, Bottom Nav, Mobile Scrim
+   ============================================================ */
+
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: var(--z-bottom-nav);
+  background: var(--charcoal); border-top: 1px solid rgba(255,255,255,.07);
+  display: flex; justify-content: space-around; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.bottom-nav .bn-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 9.5px; font-weight: 600; color: #8f8d85; text-decoration: none; padding: 4px 12px; border-radius: 8px;
+}
+.bottom-nav .bn-item i { font-size: 17px; }
+.bottom-nav .bn-item.active { color: var(--brass-light); }
+@media (min-width: 768px) { .bottom-nav { display: none; } }
+
+.mobile-scrim { position: fixed; inset: 0; background: rgba(10,10,10,.5); z-index: var(--z-bottom-nav); }
+
+/* View region responsive */
+@media (max-width: 640px) {
+  .view-region { gap: 14px; }
+  .topbar { height: 56px; padding: 0 14px; gap: 10px; }
+  .icon-btn { width: 44px; height: 44px; }
+  .page-title { font-size: 15px; }
+  .card-header { padding: 14px 16px; }
+  .card-body { padding: 16px; }
+  .card-footer { padding: 12px 16px; }
+  .kpi { padding: 14px 16px; }
+  .kpi-value { font-size: 23px; }
+  .modal { max-width: 100%; }
+  .modal-header, .modal-body, .modal-footer { padding: 16px; }
+  .modal-footer { flex-wrap: wrap; gap: 8px; }
+  .modal-footer .btn { flex: 1 1 auto; }
+  .filters { gap: 8px; }
+  .filters .input, .filters .select { width: 100%; min-width: 0; flex: 1 1 100%; }
+  .table-pagination { flex-wrap: wrap; }
+  .bottom-nav .bn-item { min-height: 44px; justify-content: center; }
+  .step-label { display: none; }
+  .nav-item { padding: 12px 12px; }
+}
+
+@media (max-width: 480px) {
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .page-crumb { display: none; }
+  #top-user, #top-rol { display: none; }
+  .topbar-right { gap: 6px; }
+  .kpi-value { font-size: 21px; }
+  .hero-cita { padding: 18px; }
+}
+
+@media (min-width: 1440px) {
+  .view-region { max-width: 1360px; }
+}
