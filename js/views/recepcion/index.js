@@ -75,7 +75,6 @@ var kpis = [
           </div>
         </section>
         <section class="card"><div class="card-header"><div><div class="card-title">Horarios disponibles hoy</div><div class="card-sub">Por barbero</div></div>
-          <button class="btn btn-sm btn-ghost" style="margin-left:auto;" onclick="App.navigate('horarios')">Ver todos</button></div>
           <div style="padding:12px;display:grid;gap:8px;">
             ${d.barberos.filter(function (b) { return b.activo; }).slice(0, 4).map(function (b) {
               var libres = d.horariosLibres(b.id, d.iso(0)).filter(function (s) { return s.libre; });

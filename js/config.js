@@ -22,7 +22,8 @@ window.CONFIG = {
           { id: "dashboard", icono: "fa-house", label: "Dashboard" },
           { id: "agenda", icono: "fa-calendar-days", label: "Mi agenda" },
           { id: "mis-citas", icono: "fa-calendar-check", label: "Mis citas" },
-          { id: "historial", icono: "fa-clock-rotate-left", label: "Historial" }
+          { id: "historial", icono: "fa-clock-rotate-left", label: "Historial" },
+          { id: "mis-servicios", icono: "fa-scissors", label: "Mis servicios" }
         ]}
       ],
       perfil: true
@@ -35,7 +36,6 @@ window.CONFIG = {
           { id: "clientes", icono: "fa-users", label: "Clientes" },
           { id: "barberos", icono: "fa-user-tie", label: "Barberos / Empleados" },
           { id: "servicios", icono: "fa-scissors", label: "Servicios" },
-          { id: "horarios", icono: "fa-clock", label: "Horarios" },
           { id: "reportes", icono: "fa-chart-column", label: "Reportes" }
         ]}
       ],
@@ -46,7 +46,6 @@ window.CONFIG = {
         { grupo: "Gestion", items: [
           { id: "dashboard", icono: "fa-house", label: "Dashboard" },
           { id: "citas", icono: "fa-calendar-check", label: "Citas", badge: "4" },
-          { id: "horarios", icono: "fa-clock", label: "Horarios" },
           { id: "clientes", icono: "fa-users", label: "Clientes" },
           { id: "servicios-realizados", icono: "fa-scissors", label: "Servicios realizados" }
         ]}
@@ -77,7 +76,6 @@ window.CONFIG = {
     recepcion: [
       { id: "dashboard", icono: "fa-house", label: "Inicio" },
       { id: "citas", icono: "fa-calendar-check", label: "Citas" },
-      { id: "horarios", icono: "fa-clock", label: "Horarios" },
       { id: "servicios-realizados", icono: "fa-scissors", label: "Servicios" }
     ]
   },
@@ -94,7 +92,7 @@ window.CONFIG = {
     clientes: { t: "Gestion de clientes", c: "Base de datos de clientes" },
     barberos: { t: "Barberos y empleados", c: "Equipo de trabajo" },
     servicios: { t: "Gestion de servicios", c: "Carta de servicios y precios" },
-    horarios: { t: "Consulta de horarios", c: "Disponibilidad de los barberos" },
+    "mis-servicios": { t: "Mis servicios", c: "Servicios que puedes realizar" },
     reportes: { t: "Reportes y estadisticas", c: "Rendimiento del negocio" },
     "servicios-realizados": { t: "Servicios realizados", c: "Registro de atenciones del dia" }
   }

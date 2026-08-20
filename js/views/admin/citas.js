@@ -28,6 +28,85 @@
     return texto.indexOf(q) > -1;
   }
 
+  function _encontrarClientePorId(id) {
+    for (var i = 0; i < _clientes.length; i++) {
+      if (_clientes[i].id_usuario == id) return _clientes[i];
+    }
+    return null;
+  }
+
+  function _encontrarClientePorNombre(nombre) {
+    var n = String(nombre || "").toLowerCase();
+    for (var i = 0; i < _clientes.length; i++) {
+      if (_nombreCliente(_clientes[i]).toLowerCase() === n) return _clientes[i];
+    }
+    return null;
+  }
+
+  function _autocompletarCliente(cliInput, cliResults, cliIdEl) {
+    if (!cliInput || !cliResults || !cliIdEl || cliInput.readOnly) return;
+
+    var cliSelIndex = -1;
+
+    function pintarResultados() {
+      var items = cliResults.querySelectorAll(".autocomplete-item");
+      for (var i = 0; i < items.length; i++) items[i].classList.toggle("activo", i === cliSelIndex);
+    }
+
+    function mostrarResultados(lista) {
+      cliResults.innerHTML = lista.map(function (cl, i) {
+        return `<div class="autocomplete-item" data-index="${i}" data-id="${cl.id_usuario}"><span class="ac-nombre">${_nombreCliente(cl)}</span>${cl.telefono ? `<span class="ac-sub">${cl.telefono}</span>` : ""}</div>`;
+      }).join("");
+      cliResults.style.display = lista.length ? "block" : "none";
+      cliSelIndex = -1;
+    }
+
+    function filtrarResultados() {
+      var q = (cliInput.value || "").toLowerCase().trim();
+      var lista = q ? _clientes.filter(function (cl) { return _clienteCoincide(cl, q); }) : _clientes.slice(0, 8);
+      mostrarResultados(lista);
+    }
+
+    function elegirCliente(cl) {
+      if (!cl) return;
+      cliInput.value = _nombreCliente(cl);
+      cliIdEl.value = cl.id_usuario;
+      cliResults.style.display = "none";
+    }
+
+    cliInput.addEventListener("input", filtrarResultados);
+    cliInput.addEventListener("focus", function () { filtrarResultados(); cliInput.classList.add("focused"); });
+    cliInput.addEventListener("blur", function () { setTimeout(function () { cliResults.style.display = "none"; cliInput.classList.remove("focused"); }, 150); });
+    cliInput.addEventListener("keydown", function (e) {
+      var items = cliResults.querySelectorAll(".autocomplete-item");
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (items.length) { cliSelIndex = (cliSelIndex + 1) % items.length; pintarResultados(); }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (items.length) { cliSelIndex = (cliSelIndex - 1 + items.length) % items.length; pintarResultados(); }
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (cliSelIndex > -1 && items[cliSelIndex]) {
+          var cl = _encontrarClientePorId(items[cliSelIndex].getAttribute("data-id"));
+          if (!cl) cl = _encontrarClientePorNombre(items[cliSelIndex].querySelector(".ac-nombre").textContent);
+          elegirCliente(cl);
+        }
+      } else if (e.key === "Escape") {
+        cliResults.style.display = "none";
+      }
+    });
+
+    cliResults.addEventListener("mousedown", function (e) {
+      var item = e.target.closest(".autocomplete-item");
+      if (!item) return;
+      e.preventDefault();
+      var cl = _encontrarClientePorId(item.getAttribute("data-id"));
+      if (!cl) cl = _encontrarClientePorNombre(item.querySelector(".ac-nombre").textContent);
+      elegirCliente(cl);
+    });
+  }
+
   function _cargarClientes() {
     var usuarios = api.getUsuariosPanelAdmin().catch(function () { return []; });
     var empleados = api.getEmpleados().catch(function () { return []; });
@@ -43,6 +122,24 @@
     if (s === "en espera") return "espera";
     if (s === "en atencion") return "atencion";
     return s;
+  }
+
+  function _estadoApi(est) {
+    var s = String(est || "").toLowerCase();
+    if (s === "espera") return "En espera";
+    if (s === "atencion") return "En atencion";
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function _precioCitaServicios(nombres) {
+    var total = 0;
+    var lista = String(nombres || "").split(",").map(function (n) { return n.trim().toLowerCase(); }).filter(Boolean);
+    _servicios.forEach(function (s) {
+      if (lista.indexOf(String(s.nombre_servicio).toLowerCase()) > -1) {
+        total += Number(s.precio_servicio) || 0;
+      }
+    });
+    return total;
   }
 
   function _norm(r) {
@@ -67,8 +164,6 @@
   }
 
   function _cita(id) {
-    var c = DB.cita(id);
-    if (c) return c;
     for (var i = 0; i < _citas.length; i++) {
       if (_citas[i].id_cita === id) return _norm(_citas[i]);
     }
@@ -79,7 +174,7 @@
     for (var i = 0; i < _citas.length; i++) {
       if (_citas[i].id_cita === id) return _norm(_citas[i]);
     }
-    return DB.cita(id) || null;
+    return null;
   }
 
   async function _citaDesdeApiConFallback(id) {
@@ -91,8 +186,10 @@
       for (var i = 0; i < _citas.length; i++) {
         if (_citas[i].id_cita === id) return _norm(_citas[i]);
       }
-    } catch (e) {}
-    return DB.cita(id) || null;
+    } catch (e) {
+      // Error en API, retorno null - el llamador manejará el caso
+    }
+    return null;
   }
 
   function _filtradas() {
@@ -100,15 +197,13 @@
       if (filtroCitas.fecha && c.fecha !== filtroCitas.fecha) return false;
       if (filtroCitas.estado && c.estado.toLowerCase() !== filtroCitas.estado.toLowerCase()) return false;
       if (filtroCitas.barbero) {
-        var b = DB.barbero(filtroCitas.barbero);
-        if (!b) return false;
         var porId = typeof c.barbero.id === "number" && c.barbero.id === filtroCitas.barbero;
-        var porNombre = c.barbero.nombre.toLowerCase().indexOf(b.nombre.toLowerCase()) !== -1;
+        var porNombre = c.barbero.nombre.toLowerCase().indexOf(String(filtroCitas.barbero).toLowerCase()) !== -1;
         if (!porId && !porNombre) return false;
       }
       if (filtroCitas.servicio) {
-        var s = DB.servicio(filtroCitas.servicio);
-        if (s && c.servicio.nombre.toLowerCase().indexOf(s.nombre.toLowerCase()) === -1) return false;
+        var sNombre = String(filtroCitas.servicio).toLowerCase();
+        if (c.servicio.nombre.toLowerCase().indexOf(sNombre) === -1) return false;
       }
       return true;
     });
@@ -123,16 +218,14 @@
           <div style="margin-left:auto;" class="filters">
             <input type="date" class="input" id="f-fecha" value="${filtroCitas.fecha}">
             <select class="select" id="f-barbero"><option value="0">Todos los barberos</option>
-              ${d.barberos.map(function (b) { return `<option value="${b.id}"${filtroCitas.barbero === b.id ? " selected" : ""}>${b.nombre}</option>`; }).join("")}
-            </select>
-<select class="select" id="f-estado"><option value="">Todos los estados</option>
-              ${["Pendiente", "Confirmada", "Completada", "Cancelada"].map(function (e) {
-                return `<option value="${e}"${filtroCitas.estado === e ? " selected" : ""}>${e}</option>`;
-              }).join("")}
+              ${(() => { try { return (d.barberos || []).map(function (b) { return `<option value="${b.id}"${filtroCitas.barbero === b.id ? " selected" : ""}>${b.nombre}</option>`; }).join(""); } catch (e) { return ""; } })()}</select>
+            <select class="select" id="f-estado"><option value="">Todos los estados</option>
+              ${["Pendiente", "Confirmada", "Completada", "Cancelada", "En Atencion"].map(function (e) {
+      return `<option value="${e}"${filtroCitas.estado === e ? " selected" : ""}>${e}</option>`;
+    }).join("")}
             </select>
             <select class="select" id="f-servicio"><option value="0">Todos los servicios</option>
-              ${d.servicios.map(function (s) { return `<option value="${s.id}"${filtroCitas.servicio === s.id ? " selected" : ""}>${s.nombre}</option>`; }).join("")}
-            </select>
+              ${(() => { try { return (d.servicios || []).map(function (s) { return `<option value="${s.id}"${filtroCitas.servicio === s.id ? " selected" : ""}>${s.nombre}</option>`; }).join(""); } catch (e) { return ""; } })()}</select>
             <button class="btn btn-sm btn-ghost" id="f-limpiar"><i class="fas fa-rotate-left"></i></button>
           </div>
         </div>
@@ -154,18 +247,18 @@
     api.obtenerCitasDetalles()
       .then(
         function (lista) {
-        _citas = lista || [];
-        var tbody = document.getElementById("citas-tbody");
-        if (!tbody) return;
-        var count = document.getElementById("citas-count");
-        var rows = _filtradas();
-        if (count) count.textContent = rows.length + " registros";
-        if (!rows.length) {
-          tbody.innerHTML = `<tr><td colspan="9" class="cell-muted" style="text-align:center;padding:20px;">Sin citas registradas</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = rows.map(function (c) {
-          return `
+          _citas = lista || [];
+          var tbody = document.getElementById("citas-tbody");
+          if (!tbody) return;
+          var count = document.getElementById("citas-count");
+          var rows = _filtradas();
+          if (count) count.textContent = rows.length + " registros";
+          if (!rows.length) {
+            tbody.innerHTML = `<tr><td colspan="9" class="cell-muted" style="text-align:center;padding:20px;">Sin citas registradas</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = rows.map(function (c) {
+            return `
             <tr>
               <td data-label="ID"><span class="cell-primary">#${c.id}</span></td>
               <td data-label="Cliente">${c.cliente.nombre}</td>
@@ -177,14 +270,14 @@
               <td data-label="Estado">${UI.estadoBadge(c.estado)}</td>
               <td data-label="Acciones"><div class="actions">
                 <button class="btn btn-icon btn-ghost" data-ver-cita="${c.id}" title="Ver"><i class="fas fa-eye"></i></button>
-                <button class="btn btn-icon btn-ghost${c.estado === "completada" ? " disabled" : ""}" data-editar-cita="${c.id}" title="Editar"${c.estado === "completada" ? " disabled" : ""}><i class="fas fa-pen"></i></button>
+                <button class="btn btn-icon btn-ghost" data-editar-cita="${c.id}" title="Editar" ${c.estado === "completada" || c.estado === "cancelada" ? "disabled" : ""}><i class="fas fa-pen"></i></button>
                 <button class="btn btn-icon btn-ghost" data-cambiar-barbero="${c.id}" title="Cambiar barbero"><i class="fas fa-user-tie"></i></button>
                 <button class="btn btn-icon btn-ghost" data-reprogramar="${c.id}" title="Reprogramar"><i class="fas fa-calendar-plus"></i></button>
-                <button class="btn btn-icon btn-danger" data-cancelar-cita="${c.id}" title="Cancelar"><i class="fas fa-xmark"></i></button>
+                <button class="btn btn-icon btn-danger" data-cancelar-cita="${c.id}" title="Cancelar" ${c.estado === "completada" || c.estado === "cancelada" ? "disabled" : ""}><i class="fas fa-xmark"></i></button>
               </div></td>
             </tr>`;
-        }).join("");
-      })
+          }).join("");
+        })
       .catch(function (err) {
         var tbody = document.getElementById("citas-tbody");
         if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="cell-muted" style="text-align:center;padding:20px;">Error al cargar citas</td></tr>`;
@@ -201,9 +294,9 @@
       .then(function (lista) { _clientes = lista || []; })
       .catch(function () { _clientes = []; });
 
-    api.obtenerBarberia()
-      .then(function (b) { _barberia = b || null; })
-      .catch(function () { _barberia = null; });
+    // api.obtenerBarberia()
+    //   .then(function (b) { _barberia = b || null; })
+    //   .catch(function () { _barberia = null; });
 
     return html;
   }
@@ -245,8 +338,29 @@
       var canc = e.target.closest("[data-cancelar-cita]");
       if (canc) cancelarCitaAdmin(+canc.getAttribute("data-cancelar-cita"));
     };
-    region.addEventListener("click", region._citasClick);
-  }
+    // Cargar barberos en el filtro
+    async function cargarBarberosEnFiltro() {
+        try {
+            const barberos = await api.getEmpleadosByTipo('Barbero');
+            const select = region.querySelector('#f-barbero');
+            if (!select) return;
+            select.innerHTML = '<option value="0">Todos los barberos</option>';
+            barberos.forEach(function (emp) {
+                const opt = document.createElement('option');
+                opt.value = emp.id_usuario;
+                opt.textContent = emp.usuario.nombres + ' ' + emp.usuario.apellidos;
+                if (filtroCitas.barbero !== undefined && opt.value == filtroCitas.barbero) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.error('Error al cargar barberos en el filtro', e);
+        }
+    }
+    if (region) cargarBarberosEnFiltro();
+     region.addEventListener("click", region._citasClick);
+   }
 
   function abrirCambiarBarbero(id) {
     _citaDesdeApiConFallback(id).then(function (c) {
@@ -284,14 +398,10 @@
             }).join("");
           })
           .catch(function () {
-            sel.innerHTML = '<option value="">Selecciona</option>' + DB.barberos.filter(function (b) { return b.activo; }).map(function (b) {
-              return `<option value="${b.id}"${b.id === c.barbero.id ? " selected" : ""}>${b.nombre}</option>`;
-            }).join("");
+            sel.innerHTML = '<option value="">Selecciona</option>' + ((c.barbero && c.barbero.id ? c.barbero.nombre : '') + '').split(' ').map(function (n) { return '<option value="">Sin datos</option>'; }).join("");
           });
       } else {
-        sel.innerHTML = '<option value="">Selecciona</option>' + DB.barberos.filter(function (b) { return b.activo; }).map(function (b) {
-          return `<option value="${b.id}"${b.id === c.barbero.id ? " selected" : ""}>${b.nombre}</option>`;
-        }).join("");
+        sel.innerHTML = '<option value="">Selecciona</option>' + ((c.barbero && c.barbero.id ? c.barbero.nombre : '') + '').split(' ').map(function (n) { return '<option value="">Sin datos</option>'; }).join("");
       }
       setTimeout(function () {
         m.overlay.querySelector("[data-ok]").addEventListener("click", async function () {
@@ -299,9 +409,9 @@
           if (!nuevo) { UI.toast("Campo requerido", "Selecciona un barbero.", "error"); return; }
           var btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
           try {
-            var barberiaId = (_barberia && _barberia.id_barberia) || 1;
+            var barberiaId = _barberia && _barberia.id_barberia ? _barberia.id_barberia : null;
             await api.actualizarCita(id, {
-              fecha_hora: c.fecha + "T" + c.hora + ":00",
+              fecha_hora: DateUtils.toApiDateTime(c.fecha, c.hora),
               estado_cita: c.estado.charAt(0).toUpperCase() + c.estado.slice(1),
               id_cliente: c.cliente.id,
               id_barbero: Number(nuevo),
@@ -344,8 +454,8 @@
         </div>
         <div style="display:grid;gap:10px;">
           ${filas.map(function (f) {
-            return `<div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--line);"><span class="cell-muted">${f[0]}</span><span style='font-weight:600;'>${f[1]}</span></div>`;
-          }).join("")}
+          return `<div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--line);"><span class="cell-muted">${f[0]}</span><span style='font-weight:600;'>${f[1]}</span></div>`;
+        }).join("")}
         </div>
         `,
       footer:
@@ -371,24 +481,17 @@
       try { _servicios = (await api.getServicios()) || []; }
       catch (e) { _servicios = []; }
     }
-    if (!_servicios.length) {
-      _servicios = d.servicios.filter(function (s) { return s.activo; }).map(function (s) {
-        return { id_servicio: s.id, nombre_servicio: s.nombre, tipo_servicio: "PRINCIPAL", precio_servicio: s.precio, estado_servicio: "Activo" };
-      });
-    }
     if (!_clientes.length) {
       try { _clientes = (await _cargarClientes()) || []; }
       catch (e) { _clientes = []; }
-    }
-    if (!_clientes.length) {
-      _clientes = d.clientes.map(function (cl) {
-        return { id_usuario: cl.id, nombres: cl.nombre, apellidos: "" };
-      });
     }
     if (!_barberia) {
       try { _barberia = (await api.obtenerBarberia()) || null; }
       catch (e) { _barberia = null; }
     }
+    console.log("[citas-admin][abrirFormCita]", c ? "Editar #" + id : "Crear",
+      "| servicios:", _servicios.length, "| clientes:", _clientes.length,
+      "| _barberia:", _barberia, "| barberos en _barberia:", (_barberia && _barberia.barberos ? _barberia.barberos.length : 0));
 
     // Servicios que el barbero asignado puede realizar (solo en edición)
     var serviciosPermitidosBarbero = null;
@@ -443,7 +546,7 @@
       return "";
     })() : "";
 
-var body = `
+    var body = `
       <div style="display:grid;gap:12px;">
         <div class="field"><label class="field-label">Cliente <span class="req">*</span></label>
           <div class="autocomplete-wrap">
@@ -461,40 +564,91 @@ var body = `
           </select></div>
         <div class="field">
           ${adicionales.length
-            ? `<details class="adds" id="f-adds">
+        ? `<details class="adds" id="f-adds">
                   <summary class="adds-summary"><span>Servicios adicionales <em>(opcional)</em></span><i class="fas fa-chevron-down adds-chevron"></i></summary>
                   <div class="adds-box" id="f-adds-box">
                     ${adicionales.map(function (s) {
-                      return `<label class="adds-item"><input type="checkbox" class="add-chk" value="${s.nombre_servicio}" data-id-servicio="${s.id_servicio}" data-precio="${s.precio_servicio}"><span class="adds-nombre">${s.nombre_servicio}</span><span class="adds-precio">${d.formatPrecio(_precioServicio(s))}</span></label>`;
-                    }).join("")}
+          return `<label class="adds-item"><input type="checkbox" class="add-chk" value="${s.nombre_servicio}" data-id-servicio="${s.id_servicio}" data-precio="${s.precio_servicio}"><span class="adds-nombre">${s.nombre_servicio}</span><span class="adds-precio">${d.formatPrecio(_precioServicio(s))}</span></label>`;
+        }).join("")}
                   </div>
                 </details>`
-            : `<div class="adds-summary" style="cursor:default;"><span>Servicios adicionales <em>(no hay disponibles)</em></span></div>`}
+        : `<div class="adds-summary" style="cursor:default;"><span>Servicios adicionales <em>(no hay disponibles)</em></span></div>`}
           <div class="total-estimado"><span>Total estimado</span><b id="f-total-estimado">${d.formatPrecio(0)}</b></div>
         </div>
         ${!c ? `
-        <div class="field"><label class="field-label">Barbero <span class="req">*</span></label>
-          <select class="select" id="f-barbero"><option value="">Selecciona</option>
-            ${d.barberos.filter(function (b) { return b.activo; }).map(function (b) { return `<option value="${b.id}">${b.nombre} (${b.horarioIni}-${b.horarioFin})</option>`; }).join("")}
-          </select></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="field"><label class="field-label">Fecha <span class="req">*</span></label><input type="date" class="input" id="f-fecha" value="${d.iso(1)}"></div>
-          <div class="field"><label class="field-label">Hora <span class="req">*</span></label><input type="time" class="input" id="f-hora" value="10:00"></div>
-        </div>` : ""}
-        <div class="field"><label class="field-label">Estado</label>
-          <select class="select" id="f-estado"${c ? "" : " disabled"}>
-            ${c
-              ? ["Pendiente", "Confirmada"].map(function (e) {
-                  return `<option value="${e}"${e.toLowerCase() === String(estadoPrefill).toLowerCase() ? " selected" : ""}>${e}</option>`;
-                }).join("")
-              : `<option value="Pendiente" selected>Pendiente</option>`}
-          </select>
-          ${!c ? '<span class="field-hint">Las nuevas citas se crean en estado Pendiente</span>' : ""}
-        </div>
-      </div>
-      <div style="margin-top:14px;padding:12px;background:var(--sand);border-radius:9px;font-size:12.5px;color:var(--smoke);">
-        <i class="fas fa-circle-info" style="color:var(--brass-dim);margin-right:6px;"></i>${c ? "Para cambiar barbero, fecha u hora use los botones \"Reprogramar\" o \"Cambiar barbero\" en la tabla." : "El sistema verifica la disponibilidad del barbero al guardar."}</div>`;
+        <div class="field">
+  <label class="field-label">Barbero <span class="req">*</span></label>
+  <select class="select" id="f-barbero">
+    <option value="">Selecciona</option>
+    ${(() => {
+          try {
+            return (_barberia && _barberia.barberos || [])
+              .filter(function (b) { return b.activo; })
+              .map(function (b) {
+                return `<option value="${b.id}">${b.nombre}</option>`;
+              })
+              .join("");
+          } catch (e) {
+            return "";
+          }
+        })()}
+  </select>
+  <div class="field-hint">
+    El cliente no se puede cambiar. Para otro cliente, cancele y cree una nueva cita.
+  </div>
+</div>
 
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+  <div class="field">
+    <label class="field-label">Fecha <span class="req">*</span></label>
+    <input
+      type="date"
+      class="input"
+      id="f-fecha"
+      value="${d.iso()}"
+    >
+  </div>
+
+  <div class="field">
+    <label class="field-label">Hora <span class="req">*</span></label>
+    <input
+      type="time"
+      class="input"
+      id="f-hora"
+      value="10:00"
+    >
+  </div>
+</div>
+` : ""}
+
+<div class="field">
+  <label class="field-label">Estado</label>
+  <select class="select" id="f-estado"${c ? "" : " disabled"}>
+    ${c
+        ? ["Pendiente", "Confirmada", "En Atencion", "Completada"].map(function (e) {
+          return `<option value="${e}"${e.toLowerCase() === String(estadoPrefill).toLowerCase()
+              ? " selected"
+              : ""
+            }>${e}</option>`;
+        }).join("")
+        : `<option value="Pendiente" selected>Pendiente</option>`
+      }
+  </select>
+
+  ${!c
+        ? '<span class="field-hint">Las nuevas citas se crean en estado Pendiente</span>'
+        : ""
+      }
+</div>
+</div>
+
+<div style="margin-top:14px;padding:12px;background:var(--sand);border-radius:9px;font-size:12.5px;color:var(--smoke);">
+  <i class="fas fa-circle-info" style="color:var(--brass-dim);margin-right:6px;"></i>
+  ${c
+        ? 'Para cambiar barbero, fecha u hora use los botones "Reprogramar" o "Cambiar barbero" en la tabla.'
+        : "El sistema verifica la disponibilidad del barbero al guardar."
+      }
+</div>`;
     var m = UI.modal({
       titulo: c ? "Editar cita #" + id : "Nueva cita",
       icon: '<i class="fas fa-calendar-check"></i>',
@@ -513,76 +667,9 @@ var body = `
       var cliInput = m.overlay.querySelector("#f-cliente");
       var cliResults = m.overlay.querySelector("#f-cliente-results");
       var cliIdEl = m.overlay.querySelector("#f-cliente-id");
-      var cliSelIndex = -1;
 
-      function pintarResultados() {
-        var items = cliResults.querySelectorAll(".autocomplete-item");
-        for (var i = 0; i < items.length; i++) items[i].classList.toggle("activo", i === cliSelIndex);
-      }
-      function mostrarResultados(lista) {
-        cliResults.innerHTML = lista.map(function (cl, i) {
-          return `<div class="autocomplete-item" data-index="${i}" data-id="${cl.id_usuario}"><span class="ac-nombre">${_nombreCliente(cl)}</span>${cl.telefono ? `<span class="ac-sub">${cl.telefono}</span>` : ""}</div>`;
-        }).join("");
-        cliResults.style.display = lista.length ? "block" : "none";
-        cliSelIndex = -1;
-      }
-      function filtrarResultados() {
-        var q = (cliInput.value || "").toLowerCase().trim();
-        var lista = q ? _clientes.filter(function (cl) { return _clienteCoincide(cl, q); }) : _clientes.slice(0, 8);
-        mostrarResultados(lista);
-      }
-      function elegirCliente(cl) {
-        if (!cl) return;
-        // Try to find by id_usuario first
-        var found = _clientes.find(function (c) { return c.id_usuario === cl.id_usuario; });
-        if (found) cl = found;
-        cliInput.value = _nombreCliente(cl);
-        cliIdEl.value = cl.id_usuario;
-        cliResults.style.display = "none";
-      }
-      if (cliInput && !c) {
-        cliInput.addEventListener("input", filtrarResultados);
-        cliInput.addEventListener("focus", filtrarResultados);
-        cliInput.addEventListener("blur", function () { setTimeout(function () { cliResults.style.display = "none"; }, 120); });
-        cliInput.addEventListener("keydown", function (e) {
-          var items = cliResults.querySelectorAll(".autocomplete-item");
-          if (e.key === "ArrowDown") {
-            e.preventDefault();
-            if (items.length) { cliSelIndex = (cliSelIndex + 1) % items.length; pintarResultados(); }
-          } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            if (items.length) { cliSelIndex = (cliSelIndex - 1 + items.length) % items.length; pintarResultados(); }
-          } else if (e.key === "Enter") {
-            e.preventDefault();
-            if (cliSelIndex > -1 && items[cliSelIndex]) {
-var id = +items[cliSelIndex].getAttribute("data-id");
-              var found = _clientes.find(function (c) { return c.id_usuario === id; });
-              if (!found) {
-                // Fallback: try to find by name matching the displayed name
-                var displayedName = items[cliSelIndex].querySelector(".ac-nombre").textContent || "";
-                found = _clientes.find(function (c) { return _nombreCliente(c).toLowerCase().includes(displayedName.toLowerCase()); });
-              }
-              var cl = found;
-              elegirCliente(cl);
-            }
-          } else if (e.key === "Escape") {
-            cliResults.style.display = "none";
-          }
-        });
-      }
-      m.overlay.querySelectorAll(".autocomplete-item").forEach(function (item) {
-          item.addEventListener("click", function () {
-            var id = +item.getAttribute("data-id");
-            var found = _clientes.find(function (c) { return c.id_usuario === id; });
-            if (!found) {
-              // Fallback: try to find by name matching the displayed name
-              var displayedName = item.querySelector(".ac-nombre").textContent || "";
-              found = _clientes.find(function (c) { return _nombreCliente(c).toLowerCase().includes(displayedName.toLowerCase()); });
-            }
-            var cl = found;
-            elegirCliente(cl);
-          });
-        });
+      _autocompletarCliente(cliInput, cliResults, cliIdEl);
+
       function recalcular() {
         var total = 0;
         var sel = mainSel && mainSel.selectedOptions[0];
@@ -607,9 +694,13 @@ var id = +items[cliSelIndex].getAttribute("data-id");
         }).join("");
       }
       function opcionesBarberoMock() {
-        return '<option value="">Selecciona</option>' + d.barberos.filter(function (b) { return b.activo; }).map(function (b) {
-          return `<option value="${b.id}">${b.nombre} (${b.horarioIni}-${b.horarioFin})</option>`;
-        }).join("");
+        return '<option value="">Selecciona</option>' +
+          ((_barberia && _barberia.barberos || [])
+            .filter(function (b) { return b.activo; })
+            .map(function (b) {
+              return `<option value="${b.id}">${b.nombre}</option>`;
+            })
+            .join(""));
       }
       function cargarBarberos() {
         var bSel = m.overlay.querySelector("#f-barbero");
@@ -629,7 +720,7 @@ var id = +items[cliSelIndex].getAttribute("data-id");
               }
             }
           })
-          .catch(function () { bSel.innerHTML = opcionesBarberoMock(); });
+          .catch(function () { bSel.innerHTML = '<option value="">Sin barberos disponibles</option>'; });
       }
       if (mainSel) mainSel.addEventListener("change", function () { recalcular(); actualizarAdicionales(); });
       function vincularAdicionales() {
@@ -645,8 +736,8 @@ var id = +items[cliSelIndex].getAttribute("data-id");
         var lista = adicionales.filter(function (s) { return (!idsPermitidos || idsPermitidos.indexOf(s.id_servicio) > -1) && (!serviciosPermitidosBarbero || serviciosPermitidosBarbero[s.id_servicio]); });
         box.innerHTML = lista.length
           ? lista.map(function (s) {
-              return `<label class="adds-item"><input type="checkbox" class="add-chk" value="${s.nombre_servicio}" data-id-servicio="${s.id_servicio}" data-precio="${s.precio_servicio}"><span class="adds-nombre">${s.nombre_servicio}</span><span class="adds-precio">${d.formatPrecio(_precioServicio(s))}</span></label>`;
-            }).join("")
+            return `<label class="adds-item"><input type="checkbox" class="add-chk" value="${s.nombre_servicio}" data-id-servicio="${s.id_servicio}" data-precio="${s.precio_servicio}"><span class="adds-nombre">${s.nombre_servicio}</span><span class="adds-precio">${d.formatPrecio(_precioServicio(s))}</span></label>`;
+          }).join("")
           : '<div style="font-size:12.5px;color:var(--smoke);padding:4px 2px;">No hay adicionales compatibles con este servicio.</div>';
         if (_prefillAdicionales.length) {
           m.overlay.querySelectorAll(".add-chk").forEach(function (chk) {
@@ -671,6 +762,7 @@ var id = +items[cliSelIndex].getAttribute("data-id");
       if (guardar) guardar.addEventListener("click", async function () {
         var clId = Number(m.overlay.querySelector("#f-cliente-id").value);
         var sId = Number(m.overlay.querySelector("#f-servicio").value);
+        console.log("[citas-admin][guardar] Click. Modo:", c ? "editar #" + id : "crear", "| clId:", clId, "| sId:", sId);
         if (!clId) { UI.toast("Campos incompletos", "Selecciona un cliente.", "error"); return; }
         var idsServicios = [];
         if (sId > 0) idsServicios.push(sId);
@@ -683,63 +775,79 @@ var id = +items[cliSelIndex].getAttribute("data-id");
           return;
         }
         var estado = m.overlay.querySelector("#f-estado").value;
-        var barberiaId = (_barberia && _barberia.id_barberia) || 1;
-        guardar.disabled = true;
-        guardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-        var peticion;
+        var barberiaId = _barberia && _barberia.id_barberia ? _barberia.id_barberia : null;
+        console.log("[citas-admin][guardar] estado:", estado, "| ids_servicios:", idsServicios, "| barberiaId:", barberiaId, "| _barberia:", _barberia);
+
+        var payload = null;
         if (c && id) {
-          peticion = api.actualizarCita(id, {
-            fecha_hora: c.fecha + "T" + c.hora + ":00",
+          payload = {
+            fecha_hora: DateUtils.toApiDateTime(c.fecha, c.hora),
             estado_cita: estado,
             id_cliente: clId,
             id_barbero: c.barbero.id,
             id_barberia: barberiaId,
             ids_servicios: idsServicios
-          });
+          };
+          console.log("[citas-admin][guardar] Payload EDITAR:", payload);
         } else {
-          var bId = Number(m.overlay.querySelector("#f-barbero").value);
-          var fecha = m.overlay.querySelector("#f-fecha").value;
-          var hora = m.overlay.querySelector("#f-hora").value;
-          if (!bId) { UI.toast("Campos incompletos", "Selecciona un barbero.", "error"); return; }
+          var bSel = m.overlay.querySelector("#f-barbero");
+          var fechaEl = m.overlay.querySelector("#f-fecha");
+          var horaEl = m.overlay.querySelector("#f-hora");
+          var bId = Number(bSel ? bSel.value : NaN);
+          var fecha = fechaEl ? fechaEl.value : "";
+          var hora = horaEl ? horaEl.value : "";
+          console.log("[citas-admin][guardar] Crear | bId:", bId, "| fecha:", fecha, "| hora:", hora, "| options barbero:", bSel ? bSel.options.length : 0, "| selectedIndex:", bSel ? bSel.selectedIndex : -1, "| bSel existe:", !!bSel);
+          if (!bSel || !bId) { UI.toast("Campos incompletos", "Selecciona un barbero.", "error"); return; }
           if (!fecha || !hora) { UI.toast("Campos incompletos", "Indica fecha y hora.", "error"); return; }
           if (_barberia && _barberia.id_barberia) {
             try {
               var horario = await api.getHorarioBarberia(_barberia.id_barberia, fecha);
+              console.log("[citas-admin][guardar] Horario barberia:", horario);
               if (horario && horario.hora_apertura && horario.hora_cierre) {
                 var abre = horario.hora_apertura.substr(0, 5);
                 var cierra = horario.hora_cierre.substr(0, 5);
+                console.log("[citas-admin][guardar] Rango horario: abre", abre, "| cierra", cierra, "| hora elegida", hora);
                 if (hora < abre || hora >= cierra) {
                   UI.toast("Fuera de horario", "La barberia abre a las " + abre + " y cierra a las " + cierra + ".", "error");
                   return;
                 }
               }
-            } catch (e) {}
+            } catch (e) {
+              console.log("[citas-admin][guardar] Error consultando horario barberia (se continua):", e);
+            }
           }
-          peticion = api.crearCita({
-            fecha_hora: fecha + "T" + hora + ":00",
+          payload = {
+            fecha_hora: DateUtils.toApiDateTime(fecha, hora),
             estado_cita: estado,
             id_cliente: clId,
             id_barbero: bId,
             id_barberia: barberiaId,
             ids_servicios: idsServicios
-          });
+          };
+          console.log("[citas-admin][guardar] Payload a enviar al servidor:", payload);
         }
+
+        guardar.disabled = true;
+        guardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        var peticion = c && id ? api.actualizarCita(id, payload) : api.crearCita(payload);
         peticion.then(function () {
+          console.log("[citas-admin][guardar] Respuesta OK:", payload);
           UI.toast(c ? "Cita actualizada" : "Cita creada", "La cita fue " + (c ? "modificada" : "registrada") + " correctamente.", "success");
           m.close();
           App.navigate("citas");
         }).catch(function (err) {
+          console.error("[citas-admin][guardar] Error al guardar cita:", err, "| payload:", payload);
           guardar.disabled = false;
           guardar.innerHTML = '<i class="fas fa-floppy-disk"></i> Guardar';
           // Extraer mensaje del error del backend (FastAPI ValueError)
           var backendMsg = (err && err.message) ? err.message :
-                           (err && err.response && err.response.data && err.response.data.detail) ? err.response.data.detail :
-                           "No se pudo guardar la cita.";
+            (err && err.response && err.response.data && err.response.data.detail) ? err.response.data.detail :
+              "No se pudo guardar la cita.";
           UI.toast("Error", backendMsg, "error");
         });
       });
       cerrar.forEach(function (b) { b.addEventListener("click", async function () { m.close(); }); });
-}, 30);
+    }, 30);
   }
 
   // Función para obtener horarios disponibles para reprogramar una cita
@@ -750,10 +858,16 @@ var id = +items[cliSelIndex].getAttribute("data-id");
   //   citas     : array de objetos cita {fecha, hora, barbero, estado} (opcional)
   // Devuelve un array de strings ["HH:MM", "HH:MM", ...] con los huecos libres.
   // Si no hay datos suficientes, devuelve un array vacío.
-  function obtenerHorariosDisponibles(barberoId, fecha, duracion = 60, citas) {
-    // 1. Buscar al barbero en la lista global _barberos
+  function obtenerHorariosDisponibles(barberoId, fecha, duracion, citas) {
+    // 1. Buscar información del barbero
+    // Intentar obtener desde _barberos o _barberia
     var b = null;
-    _barberos.forEach(function (x) { if (x.id_usuario === barberoId) b = x; });
+    if (typeof _barberos !== "undefined" && _barberos) {
+      _barberos.forEach(function (x) { if (x.id_usuario === barberoId) b = x; });
+    }
+    if (!b && _barberia && _barberia.barberos) {
+      _barberia.barberos.forEach(function (x) { if (x.id_usuario === barberoId) b = x; });
+    }
     if (!b) return [];
 
     // 2. Parsear horario de trabajo "HH:MM"
@@ -770,8 +884,9 @@ var id = +items[cliSelIndex].getAttribute("data-id");
       citas.forEach(function (c) {
         if (c.fecha === fecha && c.barbero && c.barbero.id_usuario === barberoId && c.estado !== "cancelada") {
           var h = parseInt(c.hora.split(":")[0]) * 60 + parseInt(c.hora.split(":")[1]);
-          // duración por defecto 45 min; si tienes la duración real, úsala aquí
-          oc.push({ ini: h, fin: h + 45 });
+          // Usar duración real de la cita si está disponible, sino el parámetro duracion
+          var citaDuracion = c.tiempoTotal || duracion || 60;
+          oc.push({ ini: h, fin: h + citaDuracion });
         }
       });
     }
@@ -811,15 +926,19 @@ var id = +items[cliSelIndex].getAttribute("data-id");
   // ============================================================
   // RESTRICCIONES DE CITA NUEVA / EDITAR
   // ============================================================
-  
-  function abrirReprogramarAdmin(id) {
+
+  async function abrirReprogramarAdmin(id) {
     var c = _cita(id);
     if (!c) return;
+
+    if (!_servicios.length) {
+      try { _servicios = (await api.getServicios()) || []; } catch (e) { _servicios = []; }
+    }
 
     var currentFecha = c.fecha ? DB.formatFechaLarga(c.fecha) : "";
     var currentHora = c.hora || "";
     var barberoNombre = (c.barbero && c.barbero.nombre) ? c.barbero.nombre : "—";
-    var servicioPrecio = c.servicio.precio ? DB.formatPrecio(c.servicio.precio) : "$0";
+    var servicioPrecio = Number(c.servicio.precio) ? DB.formatPrecio(c.servicio.precio) : DB.formatPrecio(_precioCitaServicios(c.servicio.nombre));
     var servicioDuracion = c.tiempoTotal || 40;
 
     var body = `
@@ -903,13 +1022,12 @@ var id = +items[cliSelIndex].getAttribute("data-id");
     var btnConfirmar = m.overlay.querySelector("#btn-confirmar");
 
     function formatearFecha(fechaStr) {
-      var partes = fechaStr.split("-");
-      var d = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-      return d.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      return DateUtils.formatLongWithYear(fechaStr);
     }
 
     async function cargarHorarios(fecha) {
       if (!horariosContainer) return;
+      var overlay = m.overlay;
       horariosContainer.innerHTML = `
         <div class="no-slots">
           <i class="fa-regular fa-calendar"></i>
@@ -922,27 +1040,58 @@ var id = +items[cliSelIndex].getAttribute("data-id");
         var lista = await api.obtenerCitasDetalles();
         _citas = lista || [];
       } catch (e) {
-        console.warn("No se pudo refrescar citas, usando cache local:", e);
+        console.log("No se pudo refrescar citas, usando cache local:", e);
       }
 
       var barberoId = c.barbero && c.barbero.id ? c.barbero.id : null;
       var slots = [];
-      var manana = ["09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30"];
-      var tarde = ["14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00"];
+      var manana = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"];
+      var tarde = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
       var ocupados = [];
 
       if (barberoId) {
-        _citas.forEach(function(cita) {
+        _citas.forEach(function (cita) {
           if (cita.id_cita !== id && (cita.fecha_hora || "").substr(0, 10) === fecha && Number(cita.id_barbero) === Number(barberoId) && String(cita.estado_cita).toLowerCase() !== "cancelada") {
             ocupados.push((cita.fecha_hora || "").substr(11, 5));
           }
         });
       }
 
-      manana.forEach(function(s) { slots.push({hora: s, periodo: "mañana", disponible: ocupados.indexOf(s) === -1}); });
-      tarde.forEach(function(s) { slots.push({hora: s, periodo: "tarde", disponible: ocupados.indexOf(s) === -1}); });
+      // Obtener horario real de la barbería desde la API
+      var horarioBarberia = null;
+      if (_barberia && _barberia.id_barberia) {
+        try {
+          horarioBarberia = await api.getHorarioBarberia(_barberia.id_barberia, fecha);
+        } catch (e) {
+          console.log("No se pudo obtener horario de barbería:", e);
+        }
+      }
 
-      if (!slots.some(function(s) { return s.disponible; })) {
+      // Generar huecos basados en el horario real de la barbería
+      if (horarioBarberia && horarioBarberia.hora_apertura && horarioBarberia.hora_cierre) {
+        var iniH = parseInt(horarioBarberia.hora_apertura.split(":")[0]);
+        var iniM = parseInt(horarioBarberia.hora_apertura.split(":")[1]);
+        var fiH = parseInt(horarioBarberia.hora_cierre.split(":")[0]);
+        var fiM = parseInt(horarioBarberia.hora_cierre.split(":")[1]);
+        var ini = iniH * 60 + iniM;
+        var fi = fiH * 60 + fiM;
+
+        // Duración de la cita - obtener del servicio de la cita
+        var duracion = c.tiempoTotal || 60;
+
+        for (var t = ini; t + duracion <= fi; t += duracion) {
+          var h = String(Math.floor(t / 60)).padStart(2, "0");
+          var mm = String(t % 60).padStart(2, "0");
+          var horaStr = h + ":" + mm;
+          slots.push({ hora: horaStr, periodo: "personalizada", disponible: ocupados.indexOf(horaStr) === -1 });
+        }
+      } else {
+        // Fallback: usar slots de ejemplo si no hay horario disponible
+        manana.forEach(function (s) { slots.push({ hora: s, periodo: "mañana", disponible: ocupados.indexOf(s) === -1 }); });
+        tarde.forEach(function (s) { slots.push({ hora: s, periodo: "tarde", disponible: ocupados.indexOf(s) === -1 }); });
+      }
+
+      if (!slots.some(function (s) { return s.disponible; })) {
         horariosContainer.innerHTML = `
           <div class="no-slots">
             <i class="fa-regular fa-calendar-xmark"></i>
@@ -964,7 +1113,7 @@ var id = +items[cliSelIndex].getAttribute("data-id");
         var grid = document.createElement("div");
         grid.className = "time-grid";
 
-        lista.forEach(function(slot) {
+        lista.forEach(function (slot) {
           var btn = document.createElement("button");
           btn.type = "button";
           btn.className = "time-slot" + (!slot.disponible ? " ocupado" : "");
@@ -972,8 +1121,8 @@ var id = +items[cliSelIndex].getAttribute("data-id");
           if (!slot.disponible) {
             btn.disabled = true;
           } else {
-            btn.addEventListener("click", function() {
-              m.overlay.querySelectorAll(".time-slot").forEach(function(b) { b.classList.remove("seleccionado"); });
+            btn.addEventListener("click", function () {
+              overlay.querySelectorAll(".time-slot").forEach(function (b) { b.classList.remove("seleccionado"); });
               btn.classList.add("seleccionado");
               horaSeleccionada = slot.hora;
               resumenFecha.textContent = formatearFecha(fechaSeleccionada);
@@ -988,32 +1137,47 @@ var id = +items[cliSelIndex].getAttribute("data-id");
         return wrap;
       }
 
-      var mananaSlots = slots.filter(function(s) { return s.periodo === "mañana"; });
-      var tardeSlots = slots.filter(function(s) { return s.periodo === "tarde"; });
-
-      if (mananaSlots.length) horariosContainer.appendChild(crearPeriodo("Mañana", "fa-sun", mananaSlots));
-      if (tardeSlots.length) horariosContainer.appendChild(crearPeriodo("Tarde", "fa-cloud-sun", tardeSlots));
+      var porPeriodo = {};
+      slots.forEach(function (s) { (porPeriodo[s.periodo] = porPeriodo[s.periodo] || []).push(s); });
+      var tituloPeriodo = { mañana: ["Mañana", "fa-sun"], tarde: ["Tarde", "fa-cloud-sun"], personalizada: ["Horarios disponibles", "fa-clock"] };
+      Object.keys(porPeriodo).forEach(function (periodo) {
+        var meta = tituloPeriodo[periodo] || [periodo, "fa-clock"];
+        horariosContainer.appendChild(crearPeriodo(meta[0], meta[1], porPeriodo[periodo]));
+      });
     }
 
     if (window.flatpickr) {
-      flatpickr(m.overlay.querySelector("#fecha-reprogramar"), {
-        locale: "es",
+      var fpOpts = {
         dateFormat: "Y-m-d",
         minDate: "today",
         disableMobile: true,
         defaultDate: c.fecha || null,
-        onChange: function(selectedDates, dateStr) {
+        onChange: function (selectedDates, dateStr) {
           if (!selectedDates.length) return;
-          fechaSeleccionada = dateStr;
-          horaSeleccionada = null;
-          resumen.classList.remove("visible");
-          btnConfirmar.disabled = true;
-          cargarHorarios(dateStr);
+          seleccionarFecha(dateStr);
         }
+      };
+      if (window.flatpickr.l10ns && window.flatpickr.l10ns.es) fpOpts.locale = "es";
+      flatpickr(m.overlay.querySelector("#fecha-reprogramar"), fpOpts);
+    } else {
+      var fechaNat = m.overlay.querySelector("#fecha-reprogramar");
+      fechaNat.removeAttribute("readonly");
+      fechaNat.type = "date";
+      fechaNat.addEventListener("change", function () {
+        if (fechaNat.value) seleccionarFecha(fechaNat.value);
       });
     }
 
+    function seleccionarFecha(dateStr) {
+      fechaSeleccionada = dateStr;
+      horaSeleccionada = null;
+      resumen.classList.remove("visible");
+      btnConfirmar.disabled = true;
+      cargarHorarios(dateStr);
+    }
+
     if (c.fecha) {
+      fechaSeleccionada = c.fecha;
       cargarHorarios(c.fecha);
     }
 
@@ -1026,10 +1190,10 @@ var id = +items[cliSelIndex].getAttribute("data-id");
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
       try {
-        var barberiaId = (_barberia && _barberia.id_barberia) || 1;
+        var barberiaId = _barberia && _barberia.id_barberia ? _barberia.id_barberia : null;
         await api.actualizarCita(id, {
-          fecha_hora: fechaSeleccionada + "T" + horaSeleccionada + ":00",
-          estado_cita: c.estado.charAt(0).toUpperCase() + c.estado.slice(1),
+          fecha_hora: DateUtils.toApiDateTime(fechaSeleccionada, horaSeleccionada),
+          estado_cita: _estadoApi(c.estado),
           id_cliente: c.cliente.id,
           id_barbero: c.barbero.id,
           id_barberia: barberiaId

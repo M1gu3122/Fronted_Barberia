@@ -5,8 +5,12 @@ declare var api: {
   getCliente: (id: any) => Promise<any>;
   getClientes: () => Promise<any>;
   crearUsuario: (data: any) => Promise<any>;
+  registrarCliente: (data: any) => Promise<any>;
   actualizarUsuario: (id: any, data: any) => Promise<any>;
+  cambiarContrasena: (contraseña_actual: string, nueva_contraseña: string) => Promise<any>;
   login: (correo: string, contraseña: string) => Promise<any>;
+  solicitarRecuperacion: (correo: string) => Promise<any>;
+  restablecerContrasena: (token: string, nueva_contraseña: string) => Promise<any>;
   getUsuariosPanelAdmin: () => Promise<any>;
   getInfoPerfilUsuario: (id: any) => Promise<any>;
   getEmpleados: () => Promise<any>;
@@ -24,4 +28,6 @@ declare var api: {
   actualizarServicio: (id: any, data: any) => Promise<any>;
   eliminarServicio: (id: any) => Promise<any>;
   obtenerBarberia: () => Promise<any>;
+  obtenerCitasPorEstado: (id_usuario: any) => Promise<any>;
+  obtenerCitasPorCliente: (id_usuario: any) => Promise<any>;
 };

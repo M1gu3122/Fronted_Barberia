@@ -18,7 +18,6 @@
   }
 
   function rServiciosAdmin() {
-    var d = DB;
     var html = `
       <section class="card">
         <div class="card-header" style="flex-wrap:wrap;gap:12px;">
@@ -56,7 +55,11 @@
               <td data-label="Tipo"><span class="badge badge-dotless ${s.tipo_servicio === "PRINCIPAL" ? "badge-confirmada" : "badge-pendiente"}">${s.tipo_servicio}</span></td>
               <td data-label="Descripcion" class="cell-muted">${s.descripcion_servicio || ""}</td>
               <td data-label="Duracion">${s.tiempo_estimado} min</td>
-              <td data-label="Precio"><span class="cell-primary text-brass">${d.formatPrecio(Number(s.precio_servicio))}</span></td>
+              <td data-label="Precio">
+    <span class="cell-primary text-brass">
+        $${Number(s.precio_servicio).toLocaleString('es-CO')}
+    </span>
+</td>
               <td data-label="Estado">${UI.badge(activo ? "activo" : "inactivo")}</td>
               <td data-label="Acciones"><div class="actions">
                 <button class="btn btn-icon btn-ghost" data-editar-servicio="${s.id_servicio}" title="Editar"><i class="fas fa-pen"></i></button>
@@ -147,8 +150,8 @@
             <div class="field"><label class="field-label">Tipo <span class="req">*</span></label>
               <select class="select" id="s-tipo">
                 ${["PRINCIPAL", "ADICIONAL", "COMBO"].map(function (t) {
-                  return `<option value="${t}"${s && s.tipo_servicio === t ? " selected" : ""}>${t}</option>`;
-                }).join("")}
+          return `<option value="${t}"${s && s.tipo_servicio === t ? " selected" : ""}>${t}</option>`;
+        }).join("")}
               </select></div>
             <div class="field"><label class="field-label">Duracion (min) <span class="req">*</span></label><input class="input" type="number" id="s-duracion" value="${s ? s.tiempo_estimado : 30}"></div>
           </div>

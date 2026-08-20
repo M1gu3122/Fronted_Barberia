@@ -1,54 +1,112 @@
 /* ============================================================
    Barberia El Corte Perfecto - Vistas de Administracion - Reportes
+   Implementado con API real (resumen/barberos/citas-por-dia)
    ============================================================ */
 (function () {
   "use strict";
 
   var filtroReporte = "semana";
 
+  var _reporteData = {
+    kpis: { total: 0, completadas: 0, canceladas: 0, ingresos: 0 },
+    citasDia: [],
+    barberos: [],
+    clientes: []
+  };
+
+  /* Semana ISO actual: { anio, semana } */
+  function semanaISO(d) {
+    var date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var day = date.getDay() || 7;
+    date.setDate(date.getDate() + 4 - day);
+    var yearStart = new Date(date.getFullYear(), 0, 1);
+    return {
+      anio: date.getFullYear(),
+      semana: Math.ceil((((date - yearStart) / 86400000) + 1) / 7)
+    };
+  }
+
+  async function cargarReporteData() {
+    try {
+      var hoy = DB.iso(0);
+      var iso = semanaISO(new Date());
+      var anyoActual = new Date().getFullYear();
+      var mesActual = new Date().getMonth() + 1;
+      var dias = filtroReporte === "mes" ? 30 : 7;
+
+      var resumen, barberos;
+      if (filtroReporte === "dia") {
+        resumen = await api.getResumenPorDia(hoy);
+        barberos = await api.getBarberosPorDia(hoy);
+      } else if (filtroReporte === "semana") {
+        resumen = await api.getResumenPorSemana(iso.anio, iso.semana);
+        barberos = await api.getBarberosPorSemana(iso.anio, iso.semana);
+      } else {
+        resumen = await api.getResumenPorMes(anyoActual, mesActual);
+        barberos = await api.getBarberosPorMes(anyoActual, mesActual);
+      }
+
+      var citasDia = await api.getCitasPorDia(dias);
+      var clientes = await api.getUsuariosPanelAdmin().catch(function () { return []; });
+
+      var r = (resumen && resumen.datos && resumen.datos[0]) || {};
+      _reporteData.kpis = {
+        total: r.total_citas || 0,
+        completadas: r.citas_completadas || 0,
+        canceladas: r.citas_canceladas || 0,
+        ingresos: r.ingresos_estimados || 0
+      };
+
+      _reporteData.citasDia = (citasDia && citasDia.datos) || [];
+      _reporteData.barberos = (barberos && barberos.datos) || [];
+
+      _reporteData.clientes = (clientes || [])
+        .filter(function (u) { return u && (u.cantidad_citas || 0) > 0; })
+        .map(function (u) {
+          return {
+            nombre: ((u.nombres || "") + " " + (u.apellidos || "")).trim() || "Cliente",
+            visitas: u.cantidad_citas || 0
+          };
+        })
+        .sort(function (a, b) { return b.visitas - a.visitas; })
+        .slice(0, 5);
+
+      return true;
+    } catch (err) {
+      console.error("Error cargando reportes:", err);
+      UI.toast("Error", "No se pudo cargar los reportes: " + err.message, "error");
+      return false;
+    }
+  }
+
   function rReportes() {
     var d = DB;
-
-    var rango = filtroReporte === "dia" ? 1 : (filtroReporte === "semana" ? 7 : 30);
-    var enRango = d.citas.filter(function (c) {
-      var f = new Date(c.fecha + "T00:00:00");
-      var lim = new Date(); lim.setDate(lim.getDate() - rango);
-      return f >= lim;
-    });
-    var complet = enRango.filter(function (c) { return c.estado === "completada"; });
-    var canc = enRango.filter(function (c) { return c.estado === "cancelada"; });
-    var ingreso = complet.reduce(function (a, c) { return a + d.servicio(c.servicio).precio; }, 0);
+    var k = _reporteData.kpis;
 
     var kpis = [
-      [enRango.length, "Citas en el periodo", "fa-calendar-day", "var(--st-atencion-bg)", "var(--st-atencion)"],
-      [complet.length, "Completadas", "fa-circle-check", "var(--st-completada-bg)", "var(--st-completada)"],
-      [canc.length, "Canceladas", "fa-xmark", "var(--st-cancelada-bg)", "var(--st-cancelada)"],
-      [d.formatPrecio(ingreso), "Ingresos estimados", "fa-sack-dollar", "var(--bone)", "var(--brass-dim)"]
+      [k.total, "Citas en el periodo", "fa-calendar-day", "var(--st-atencion-bg)", "var(--st-atencion)"],
+      [k.completadas, "Completadas", "fa-circle-check", "var(--st-completada-bg)", "var(--st-completada)"],
+      [k.canceladas, "Canceladas", "fa-xmark", "var(--st-cancelada-bg)", "var(--st-cancelada)"],
+      [d.formatPrecio(k.ingresos), "Ingresos estimados", "fa-sack-dollar", "var(--bone)", "var(--brass-dim)"]
     ];
 
-    var diasSemana = [];
-    for (var i = 6; i >= 0; i--) {
-      var f = d.iso(-i);
-      diasSemana.push({ fecha: f, n: d.citas.filter(function (c) { return c.fecha === f && c.estado !== "cancelada"; }).length });
-    }
-    var maxD = Math.max.apply(null, diasSemana.map(function (x) { return x.n; })) || 1;
+    // Grafico de citas por dia (ultimos N dias segun periodo)
+    var diasSemana = _reporteData.citasDia;
+    var maxD = Math.max.apply(null, diasSemana.map(function (x) { return x.total; })) || 1;
 
-    var conteoB = {};
-    enRango.forEach(function (c) {
-      if (c.estado === "cancelada") return;
-      conteoB[c.barbero] = (conteoB[c.barbero] || 0) + 1;
-    });
-    var topB = Object.keys(conteoB).map(function (k) { return { id: +k, n: conteoB[k] }; })
-      .sort(function (a, b) { return b.n - a.n; }).slice(0, 5);
-    var maxB = topB[0] ? topB[0].n : 1;
+    // Barberos con mas citas (top 5)
+    var topB = _reporteData.barberos.slice(0, 5);
+    var maxB = topB[0] ? topB[0].total_citas : 1;
 
-    var conteoC = {};
-    enRango.forEach(function (c) {
-      if (c.estado === "cancelada") return;
-      conteoC[c.cliente] = (conteoC[c.cliente] || 0) + 1;
-    });
-    var topC = Object.keys(conteoC).map(function (k) { return { id: +k, n: conteoC[k] }; })
-      .sort(function (a, b) { return b.n - a.n; }).slice(0, 5);
+    // Clientes frecuentes
+    var topC = _reporteData.clientes;
+
+    var tituloBarras = filtroReporte === "mes" ? "Ultimos 30 dias" : "Ultimos 7 dias";
+    var etiquetaPeriodo = filtroReporte === "dia" ? "Hoy" : (filtroReporte === "semana" ? "Semana actual" : "Mes actual");
+
+    // En vista mes se usan los numeros de dia (1..31) como etiqueta; en dia/semana, el dia de la semana
+    var esMes = filtroReporte === "mes";
+    var hoy = d.iso(0);
 
     var html = `
       <section class="card">
@@ -72,50 +130,69 @@
       </section>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:16px;">
         <section class="card">
-          <div class="card-header"><div><div class="card-title">Citas por dia</div><div class="card-sub">Ultimos 7 dias</div></div></div>
-          <div class="card-body"><div class="bar-chart" id="chart-dias">
+          <div class="card-header"><div><div class="card-title">Citas por dia</div><div class="card-sub">${tituloBarras} - ${etiquetaPeriodo}</div></div></div>
+          <div class="card-body"><div class="bar-chart" ${esMes ? 'style="overflow-x:auto;"' : ""} id="chart-dias">
             ${diasSemana.map(function (dd) {
-              var pct = Math.round((dd.n / maxD) * 100);
-              var lbl = new Date(dd.fecha + "T00:00:00").toLocaleDateString("es-CO", { weekday: "short" }).slice(0, 2);
+              var pct = dd.total > 0 ? Math.max(8, Math.round((dd.total / maxD) * 100)) : 3;
+              var dObj = new Date(dd.fecha + "T00:00:00");
+              var lbl = esMes
+                ? dObj.getDate()
+                : dObj.toLocaleDateString("es-CO", { weekday: "short" }).slice(0, 2);
+              var esHoy = dd.fecha === hoy;
+              var clase = "bar-track" + (esHoy ? " hoy" : "");
               return `
-                <div class="bar-col"><div class="bar-track" style="height:0;" data-alto="${pct}"><span class="bar-val">${dd.n}</span></div>
+                <div class="bar-col"><div class="${clase}" style="height:${pct}%;" data-alto="${pct}"${esHoy ? ' data-hoy="1"' : ""}><span class="bar-val">${dd.total}</span></div>
                   <div class="bar-label">${lbl}</div></div>`;
-            }).join("")}
+            }).join("") || '<div class="cell-muted" style="text-align:center;padding:20px;">Sin datos</div>'}
           </div></div>
         </section>
         <section class="card">
-          <div class="card-header"><div><div class="card-title">Barberos con mas citas</div><div class="card-sub">Todo el periodo</div></div></div>
+          <div class="card-header"><div><div class="card-title">Barberos con mas citas</div><div class="card-sub">${etiquetaPeriodo}</div></div></div>
           <div class="card-body">
             ${topB.map(function (t) {
-              var bb = d.barbero(t.id);
-              var pct = Math.round((t.n / maxB) * 100);
+              var pct = Math.round((t.total_citas / maxB) * 100);
               return `
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-                  ${UI.avatar(bb.nombre, "avatar-sm")}
-                  <div style="flex:1;"><div style="font-size:13px;font-weight:600;margin-bottom:4px;">${bb.nombre}</div>
-                  <div style="height:7px;background:var(--bone);border-radius:999px;overflow:hidden;"><div class="barra" data-w="${pct}" style="height:100%;width:0;background:linear-gradient(90deg,var(--brass-light),var(--brass));border-radius:999px;"></div></div></div>
-                  <span style="font-weight:700;font-size:13px;">${t.n}</span>
+                  ${UI.avatar(t.barbero || "Barbero", "avatar-sm")}
+                  <div style="flex:1;"><div style="font-size:13px;font-weight:600;margin-bottom:4px;">${t.barbero || "Barbero"}</div>
+                  <div style="height:7px;background:var(--bone);border-radius:999px;overflow:hidden;"><div class="barra" data-w="${pct}" style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--brass-light),var(--brass));border-radius:999px;"></div></div></div>
+                  <span style="font-weight:700;font-size:13px;">${t.total_citas}</span>
                 </div>`;
-            }).join("")}
+            }).join("") || '<div class="cell-muted" style="text-align:center;padding:20px;">Sin datos</div>'}
           </div>
         </section>
         <section class="card">
           <div class="card-header"><div><div class="card-title">Clientes frecuentes</div><div class="card-sub">Top visitas</div></div></div>
           <div class="card-body">
             ${topC.map(function (t, idx) {
-              var cl = d.cliente(t.id);
               return `
                 <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);">
                   <span style="font-weight:700;color:var(--brass-dim);width:18px;">${idx + 1}</span>
-                  ${UI.avatar(cl.nombre, "avatar-sm")}
-                  <div style="flex:1;font-weight:600;font-size:13.5px;">${cl.nombre}</div>
-                  <span class="badge badge-brass badge-dotless">${t.n} visitas</span>
+                  ${UI.avatar(t.nombre, "avatar-sm")}
+                  <div style="flex:1;font-weight:600;font-size:13.5px;">${t.nombre}</div>
+                  <span class="badge badge-brass badge-dotless">${t.visitas} visitas</span>
                 </div>`;
-            }).join("")}
+            }).join("") || '<div class="cell-muted" style="text-align:center;padding:20px;">Sin datos</div>'}
           </div>
         </section>
       </div>`;
     return html;
+  }
+
+  function bindBarras() {
+    var region = App.el("view-region");
+    if (!region) return;
+    setTimeout(function () {
+      if (window.gsap) {
+        gsap.fromTo(region.querySelectorAll(".bar-track"),
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.04 });
+        gsap.fromTo(region.querySelectorAll(".barra"),
+          { width: "0%" },
+          { width: function (i, target) { return target.dataset.w + "%"; },
+            duration: 0.8, ease: "power2.out", stagger: 0.06 });
+      }
+    }, 60);
   }
 
   function bindReportes() {
@@ -126,12 +203,35 @@
       var btn = e.target.closest("[data-reporte]");
       if (btn) {
         filtroReporte = btn.getAttribute("data-reporte");
-        App.navigate("reportes");
+        initReportes();
       }
     };
     region.addEventListener("click", region._reportesClick);
   }
 
+  async function initReportes() {
+    var region = App.el("view-region");
+    var ok = await cargarReporteData();
+    if (!ok) return;
+    if (region) {
+      region.innerHTML = rReportes();
+      bindBarras();
+    }
+  }
+
+  var renderWrapper = function () {
+    var region = App.el("view-region");
+    if (region) {
+      region.innerHTML = `
+        <section class="card skeleton" style="height:120px;"></section>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:16px;">
+          ${[1, 2, 3].map(function () { return '<section class="card skeleton" style="height:280px;"></section>'; }).join("")}
+        </div>
+      `;
+    }
+    initReportes();
+  };
+
   /* Registro de vistas */
-  App.registerVista("admin", "reportes", rReportes, bindReportes);
+  App.registerVista("admin", "reportes", renderWrapper, bindReportes);
 })();

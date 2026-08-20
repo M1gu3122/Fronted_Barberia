@@ -52,7 +52,9 @@
     </div>
 
     <script src="../js/ui.js"></script>
+    <script src="../js/dateUtils.js"></script>
     <script src="../js/data.js"></script>
+    <script src="../js/api.js"></script>
     <script>
         (function () {
             "use strict";
@@ -60,7 +62,7 @@
                 gsap.from("#rec-card", { autoAlpha: 0, y: 28, duration: 0.55, ease: "power2.out" });
             }
             var form = document.getElementById("rec-form");
-            form.addEventListener("submit", function (e) {
+            form.addEventListener("submit", async function (e) {
                 e.preventDefault();
                 var correo = document.getElementById("rec-correo");
                 var err = form.querySelector(".field-error");
@@ -73,13 +75,21 @@
                 }
                 var btn = document.getElementById("rec-btn");
                 btn.classList.add("btn-loading");
-                setTimeout(function () {
-                    btn.classList.remove("btn-loading");
+                btn.disabled = true;
+                try {
+                    await api.solicitarRecuperacion(correo.value.trim());
                     document.getElementById("rec-paso-1").style.display = "none";
                     var paso2 = document.getElementById("rec-paso-2");
                     paso2.style.display = "block";
                     if (window.gsap) gsap.fromTo(paso2, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" });
-                }, 900);
+                } catch (err2) {
+                    console.error("Error solicitando recuperacion:", err2);
+                    var msg = (Array.isArray(err2 && err2.detail) ? "Revise los datos enviados." : (err2 && err2.message)) || "No se pudo procesar la solicitud.";
+                    UI.toast("Error", msg, "error");
+                } finally {
+                    btn.classList.remove("btn-loading");
+                    btn.disabled = false;
+                }
             });
         })();
     </script>

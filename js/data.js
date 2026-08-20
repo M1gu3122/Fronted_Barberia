@@ -6,19 +6,14 @@
 window.DB = (function () {
   "use strict";
 
-  var hoy = new Date();
-  function iso(offsetDays) {
-    var d = new Date(hoy);
-    d.setDate(d.getDate() + (offsetDays || 0));
-    return d.toISOString().slice(0, 10);
+function iso(offsetDays) {
+    return DateUtils.addDays(offsetDays || 0);
   }
   function formatFechaLarga(isoStr) {
-    var d = new Date(isoStr + "T00:00:00");
-    return d.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+    return DateUtils.formatLong(isoStr);
   }
   function formatFechaLargaConAno(isoStr) {
-    var d = new Date(isoStr + "T00:00:00");
-    return d.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    return DateUtils.formatLongWithYear(isoStr);
   }
 
 var servicios = [

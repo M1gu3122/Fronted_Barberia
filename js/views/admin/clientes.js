@@ -44,6 +44,7 @@
                 <button class="btn btn-icon btn-ghost" data-perfil-cliente="${cl.id_usuario}" title="Ver perfil"><i class="fas fa-user"></i></button>
                 <button class="btn btn-icon btn-ghost" data-editar-cliente="${cl.id_usuario}" title="Editar"><i class="fas fa-pen"></i></button>
                 <button class="btn btn-icon btn-ghost" data-historial-cliente="${cl.id_usuario}" title="Historial"><i class="fas fa-clock-rotate-left"></i></button>
+                <button class="btn btn-icon btn-ghost" data-cambiar-pass="${cl.id_usuario}" title="Cambiar contraseña"><i class="fas fa-key"></i></button>
               </div></td>
             </tr>`;
         }).join("");
@@ -75,13 +76,63 @@
     if (nuevo) nuevo.addEventListener("click", async function () { abrirFormCliente(null); });
 
     if (region._clientesClick) region.removeEventListener("click", region._clientesClick);
-    region._clientesClick = function (e) {
+region._clientesClick = function (e) {
       var perfil = e.target.closest("[data-perfil-cliente]");
       if (perfil) abrirPerfilCliente(+perfil.getAttribute("data-perfil-cliente"));
       var editar = e.target.closest("[data-editar-cliente]");
       if (editar) abrirFormCliente(+editar.getAttribute("data-editar-cliente"));
       var hist = e.target.closest("[data-historial-cliente]");
       if (hist) abrirHistorialCliente(+hist.getAttribute("data-historial-cliente"));
+      var pass = e.target.closest("[data-cambiar-pass]");
+      if (pass) {
+        var idUsuario = +pass.getAttribute("data-cambiar-pass");
+        var m = UI.modal({
+          titulo: "Restablecer contraseña",
+          icon: '<i class="fas fa-key"></i>',
+          body: `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="field"><label class="field-label">Nueva contraseña <span class="req">*</span></label><input class="input" type="password" id="nueva-pass" placeholder="Min. 6 caracteres"></div>
+              <div class="field"><label class="field-label">Confirmar <span class="req">*</span></label><input class="input" type="password" id="confirm-pass" placeholder="••••••••"></div>
+            </div>`,
+          footer: `
+            <button class="btn btn-ghost" data-cerrar-modal>Cerrar</button>
+            <button class="btn btn-primary" id="confirm-pass-btn">Restablecer</button>`
+        });
+        // Directly add event listener to the buttons in the modal
+        setTimeout(function () {
+          document.querySelector("#confirm-pass-btn").addEventListener("click", async function () {
+            var nueva = document.querySelector("#nueva-pass").value;
+            var confirm = document.querySelector("#confirm-pass").value;
+            if (!nueva || !confirm) {
+              UI.toast("Campos vacíos", "Complete ambos campos.", "error");
+              return;
+            }
+            if (nueva.length < 6) {
+              UI.toast("Contraseña corta", "La nueva contraseña debe tener al menos 6 caracteres.", "error");
+              return;
+            }
+            if (nueva !== confirm) {
+              UI.toast("Error", "Las contraseñas no coinciden.", "error");
+              return;
+            }
+            var btn = document.querySelector("#confirm-pass-btn");
+            btn.classList.add("btn-loading");
+            btn.disabled = true;
+            try {
+              await api.resetPasswordAdmin(idUsuario, nueva);
+              m.close();
+              UI.toast("Éxito", "La contraseña fue restablecida correctamente.", "success");
+            } catch (err) {
+              console.error("Error restableciendo contraseña:", err);
+              var msg = (Array.isArray(err && err.detail) ? "Revise los datos enviados." : (err && err.message)) || "No se pudo restablecer la contraseña.";
+              UI.toast("Error", msg, "error");
+            } finally {
+              btn.classList.remove("btn-loading");
+              btn.disabled = false;
+            }
+          });
+        }, 30);
+      }
     };
     region.addEventListener("click", region._clientesClick);
   }

@@ -97,9 +97,15 @@ window.App = (function () {
     var region = el("view-region");
     // animacion de salida
     if (window.gsap && region) {
-      gsap.to(region.children, { autoAlpha: 0, y: 8, duration: 0.12, stagger: 0.02, onComplete: function () {
+      // Usar Array.from para asegurar que sea un array válido
+      var children = Array.from(region.children);
+      if (children.length > 0) {
+        gsap.to(children, { autoAlpha: 0, y: 8, duration: 0.12, stagger: 0.02, onComplete: function () {
+          renderVista(vista);
+        } });
+      } else {
         renderVista(vista);
-      } });
+      }
     } else {
       renderVista(vista);
     }
@@ -111,10 +117,44 @@ window.App = (function () {
     var region = el("view-region");
     var key = DB.rol + ":" + vista;
     var fn = _renderers[key];
-    region.innerHTML = fn ? fn() : '<div class="empty"><div class="empty-ico"><i class="fas fa-compass"></i></div><div class="empty-title">Vista no encontrada</div></div>';
-    if (_afterRender[key]) _afterRender[key]();
-    if (window.gsap) {
-      gsap.fromTo(region.children, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.28, stagger: 0.05, ease: "power2.out" });
+
+    if (!fn) {
+      region.innerHTML = '<div class="empty"><div class="empty-ico"><i class="fas fa-compass"></i></div><div class="empty-title">Vista no encontrada</div></div>';
+      if (_afterRender[key]) _afterRender[key]();
+      return;
+    }
+
+    // Mostrar loading mientras se renderiza
+    region.innerHTML = '<div class="empty"><div class="empty-ico"><i class="fas fa-spinner fa-spin"></i></div><div class="empty-title">Cargando...</div></div>';
+
+    // Llamar al renderer (puede devolver string o Promise)
+    var result = fn();
+
+    // Si es una Promise, esperar a que se resuelva
+    if (result && typeof result.then === 'function') {
+      result.then(function (html) {
+        region.innerHTML = html || '<div class="empty"><div class="empty-ico"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-title">Error al renderizar</div></div>';
+        if (_afterRender[key]) _afterRender[key]();
+        if (window.gsap) {
+          var children = Array.from(region.children);
+          if (children.length > 0) {
+            gsap.fromTo(children, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.28, stagger: 0.05, ease: "power2.out" });
+          }
+        }
+      }).catch(function (err) {
+        console.error("Error renderizando vista:", vista, err);
+        region.innerHTML = '<div class="empty"><div class="empty-ico"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-title">Error al cargar</div><div class="empty-text">' + (err.message || "Error desconocido") + '</div></div>';
+      });
+    } else {
+      // Resultado síncrono (string HTML)
+      region.innerHTML = result || '<div class="empty"><div class="empty-ico"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-title">Vista vacía</div></div>';
+      if (_afterRender[key]) _afterRender[key]();
+      if (window.gsap) {
+        var children = Array.from(region.children);
+        if (children.length > 0) {
+          gsap.fromTo(children, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.28, stagger: 0.05, ease: "power2.out" });
+        }
+      }
     }
   }
 
@@ -221,6 +261,8 @@ window.App = (function () {
     navigate: navigate,
     registerVista: registerVista,
     el: el,
-    fechaHumana: fechaHumana
+    fechaHumana: fechaHumana,
+    // Datos temporales para reprogramar citas
+    reservarPara: null
   };
 })();

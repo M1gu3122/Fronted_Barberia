@@ -9,7 +9,7 @@ window.UI = (function () {
     pendiente:   { label: "Pendiente",   cls: "badge-pendiente" },
     confirmada:  { label: "Confirmada",  cls: "badge-confirmada" },
     espera:      { label: "En espera",   cls: "badge-espera" },
-    atencion:    { label: "En atencion", cls: "badge-atencion" },
+    atencion:    { label: "En Atencion", cls: "badge-atencion" },
     completada:  { label: "Completada",  cls: "badge-completada" },
     cancelada:   { label: "Cancelada",   cls: "badge-cancelada" },
     activo:      { label: "Activo",      cls: "badge-activo" },

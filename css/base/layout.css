@@ -34,15 +34,20 @@
   }
   body.sidebar-collapsed .sidebar .nav-label,
   body.sidebar-collapsed .sidebar .nav-item span,
-  body.sidebar-collapsed .sidebar .sidebar-brand > div { display: none; }
+  body.sidebar-collapsed .sidebar .sidebar-header > div { display: none; }
   body.sidebar-collapsed .sidebar .nav-item,
-  body.sidebar-collapsed .sidebar .sidebar-brand { justify-content: center; padding-left: 0; padding-right: 0; }
+  body.sidebar-collapsed .sidebar .sidebar-header { justify-content: center; padding-left: 12px; padding-right: 12px; }
+  body.sidebar-collapsed .sidebar .sidebar-header .brand-mark {
+    width: 34px; height: 34px; font-size: 15px; border-radius: 8px;
+    margin: 2px 0;
+  }
   body.sidebar-collapsed .sidebar .nav-item,
   body.sidebar-collapsed .sidebar .nav-item.active { background: transparent; }
 }
 
 /* Sidebar brand */
-.sidebar-brand {
+.sidebar-brand,
+.sidebar-header {
   display: flex; align-items: center; gap: 12px;
   padding: 20px 20px 16px;
   border-bottom: 1px solid rgba(197,160,89,.18);

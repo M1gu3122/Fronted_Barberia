@@ -90,14 +90,6 @@ grid.innerHTML = _empleados.map(function (b) {
         Editar
       </button>
 
-      <button
-        class="btn btn-sm btn-ghost"
-        data-agenda-barbero="${b.id_usuario}"
-        style="justify-content:center;">
-        <i class="fas fa-calendar-days"></i>
-        Agenda
-      </button>
-
       ${esBarbero ? `
       <button
         class="btn btn-sm btn-ghost"
@@ -107,7 +99,6 @@ grid.innerHTML = _empleados.map(function (b) {
         Servicios
       </button>
       ` : ""}
-
       <button
         class="btn btn-sm ${activo ? "btn-danger" : "btn-ghost"}"
         data-toggle-barbero="${b.id_usuario}"
@@ -166,10 +157,6 @@ grid.innerHTML = _empleados.map(function (b) {
         return;
       }
       var agenda = e.target.closest("[data-agenda-barbero]");
-      if (agenda) {
-        filtroHorarios.barbero = +agenda.getAttribute("data-agenda-barbero");
-        App.navigate("horarios");
-      }
       var serviciosBtn = e.target.closest("[data-servicios-barbero]");
       if (serviciosBtn) abrirServiciosBarbero(+serviciosBtn.getAttribute("data-servicios-barbero"));
     };
@@ -347,13 +334,27 @@ grid.innerHTML = _empleados.map(function (b) {
           // Paso 2: crear el empleado vinculado al usuario recien creado
           var empleadoId = (nuevo && (nuevo.id_usuario || nuevo.id)) || idu;
           var barb = await api.obtenerBarberia();
-          await api.crearEmpleado({
-            id_usuario: empleadoId,
-            tipo_empleado: tipo,
-            fecha_contratacion: fecha || DB.iso(0),
-            id_barberia: (barb && barb.id_barberia) || 1
-          });
-          UI.toast("Empleado creado", "El registro fue guardado correctamente.", "success");
+          try {
+            await api.crearEmpleado({
+              id_usuario: empleadoId,
+              tipo_empleado: tipo,
+              fecha_contratacion: fecha || DB.iso(0),
+              id_barberia: (barb && barb.id_barberia) || 1
+            });
+            UI.toast("Empleado creado", "El registro fue guardado correctamente.", "success");
+          } catch (err) {
+            UI.toast("Error al crear empleado", err.message || "No se pudo guardar el empleado en la base de datos.", "error");
+            // El usuario ya fue creado, ofrecer limpiar o convertir a empleado manualmente
+            UI.confirm({
+              titulo: "Usuario creado pero empleado no",
+              mensaje: "Se creó el usuario pero no se pudo crear el registro de empleado. ¿Deseas intentar nuevamente o limpiar el usuario creado?",
+              onConfirm: async function () {
+                // El usuario ya existe, podríamos intentar limpiar o solo navegar
+                // Por ahora solo navegamos y el admin puede reintentarlo
+                UI.toast("Información", "El usuario existe. El admin puede reintentar la creación de empleado desde el panel de barberos.", "info");
+              }
+            });
+          }
           m.close();
           App.navigate("barberos");
         } catch (err) {

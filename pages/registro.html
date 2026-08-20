@@ -30,34 +30,41 @@
         <form id="registro-form" novalidate style="padding:28px 30px;display:flex;flex-direction:column;gap:14px;">
             <div class="form-grid-2">
                 <div class="field">
+                    <label class="field-label">Identificacion <span class="req">*</span></label>
+                    <input class="input" id="r-id" placeholder="Numero de identificacion">
+                    <div class="field-error" id="r-id-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+                </div>
+                <div class="field">
+                    <label class="field-label">Telefono <span class="req">*</span></label>
+                    <input class="input" id="r-tel" type="tel" placeholder="300 123 4567">
+                    <div class="field-error" id="r-tel-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="field">
                     <label class="field-label">Nombre <span class="req">*</span></label>
                     <input class="input" id="r-nombre" placeholder="Carlos">
-                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+                    <div class="field-error" id="r-nombre-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
                 </div>
                 <div class="field">
                     <label class="field-label">Apellido <span class="req">*</span></label>
                     <input class="input" id="r-apellido" placeholder="Lopez">
-                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+                    <div class="field-error" id="r-apellido-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
                 </div>
             </div>
             <div class="field">
                 <label class="field-label">Correo electronico <span class="req">*</span></label>
                 <input class="input" id="r-correo" type="email" placeholder="tucorreo@mail.com">
-                <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Ingresa un correo valido.</div>
-            </div>
-            <div class="field">
-                <label class="field-label">Telefono <span class="req">*</span></label>
-                <input class="input" id="r-tel" type="tel" placeholder="300 123 4567">
-                <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Requerido.</div>
+                <div class="field-error" id="r-correo-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Ingresa un correo valido.</div>
             </div>
             <div class="form-grid-2">
                 <div class="field">
                     <label class="field-label">Contrasena <span class="req">*</span></label>
                     <div class="input-wrap">
-                        <input class="input" id="r-pass" type="password" placeholder="Min. 6 caracteres">
+                        <input class="input" id="r-pass" type="password" placeholder="Min. 8 caracteres">
                         <button type="button" class="input-toggle toggle-eye" aria-label="Mostrar contrasena"><i class="fas fa-eye"></i></button>
                     </div>
-                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Minimo 6 caracteres.</div>
+                    <div class="field-error" id="r-pass-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Minimo 8 caracteres.</div>
                 </div>
                 <div class="field">
                     <label class="field-label">Confirmar <span class="req">*</span></label>
@@ -65,7 +72,7 @@
                         <input class="input" id="r-pass2" type="password" placeholder="Repite la contrasena">
                         <button type="button" class="input-toggle toggle-eye" aria-label="Mostrar contrasena"><i class="fas fa-eye"></i></button>
                     </div>
-                    <div class="field-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Las contrasenas no coinciden.</div>
+                    <div class="field-error" id="r-pass2-error" style="display:none;"><i class="fas fa-circle-exclamation"></i> Las contrasenas no coinciden.</div>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:6px;" id="registro-btn">
@@ -79,7 +86,9 @@
     </div>
 
     <script src="../js/ui.js"></script>
+    <script src="../js/dateUtils.js"></script>
     <script src="../js/data.js"></script>
+    <script src="../js/api.js"></script>
     <script>
         (function () {
             "use strict";
@@ -96,34 +105,67 @@
                 });
             });
 
-            var form = document.getElementById("registro-form");
-            form.addEventListener("submit", function (e) {
-                e.preventDefault();
-                var campos = [["r-nombre", 0], ["r-apellido", 1], ["r-correo", 2], ["r-tel", 3]];
-                var ok = true;
-                form.querySelectorAll(".field-error").forEach(function (er) { er.style.display = "none"; });
-                form.querySelectorAll(".input.is-error").forEach(function (i) { i.classList.remove("is-error"); });
+            function mostrarError(id) {
+                var er = document.getElementById(id);
+                if (er) er.style.display = "flex";
+            }
 
-                campos.forEach(function (c) {
-                    var inp = document.getElementById(c[0]);
-                    if (!inp.value.trim()) { inp.classList.add("is-error"); form.querySelectorAll(".field-error")[c[1]].style.display = "flex"; ok = false; }
-                });
-                var correo = document.getElementById("r-correo");
-                if (correo.value && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo.value)) {
-                    correo.classList.add("is-error"); form.querySelectorAll(".field-error")[2].style.display = "flex"; ok = false;
+            var form = document.getElementById("registro-form");
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                document.querySelectorAll(".field-error").forEach(function (er) { er.style.display = "none"; });
+                document.querySelectorAll(".input.is-error").forEach(function (i) { i.classList.remove("is-error"); });
+
+                var id = document.getElementById("r-id").value.trim();
+                var nombre = document.getElementById("r-nombre").value.trim();
+                var apellido = document.getElementById("r-apellido").value.trim();
+                var correo = document.getElementById("r-correo").value.trim();
+                var telefono = document.getElementById("r-tel").value.trim();
+                var p1 = document.getElementById("r-pass").value;
+                var p2 = document.getElementById("r-pass2").value;
+
+                var ok = true;
+                function marcar(el, errId, cond) {
+                    if (cond) {
+                        el.classList.add("is-error");
+                        mostrarError(errId);
+                        ok = false;
+                    }
                 }
-                var p1 = document.getElementById("r-pass"), p2 = document.getElementById("r-pass2");
-                if (p1.value.length < 6) { p1.classList.add("is-error"); form.querySelectorAll(".field-error")[4].style.display = "flex"; ok = false; }
-                if (p2.value && p2.value !== p1.value) { p2.classList.add("is-error"); form.querySelectorAll(".field-error")[5].style.display = "flex"; ok = false; }
+                marcar(document.getElementById("r-id"), "r-id-error", !id);
+                marcar(document.getElementById("r-nombre"), "r-nombre-error", !nombre);
+                marcar(document.getElementById("r-apellido"), "r-apellido-error", !apellido);
+                marcar(document.getElementById("r-correo"), "r-correo-error", !correo || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo));
+                marcar(document.getElementById("r-tel"), "r-tel-error", !telefono);
+                marcar(document.getElementById("r-pass"), "r-pass-error", p1.length < 8);
+                marcar(document.getElementById("r-pass2"), "r-pass2-error", !p2 || p2 !== p1);
                 if (!ok) return;
 
+                var usuario = (nombre + "." + apellido).toLowerCase().replace(/[^a-z0-9._-]/g, "");
                 var btn = document.getElementById("registro-btn");
                 btn.classList.add("btn-loading");
-                setTimeout(function () {
+                btn.disabled = true;
+                try {
+                    await api.registrarCliente({
+                        id_usuario: id,
+                        nombres: nombre,
+                        apellidos: apellido,
+                        usuario: usuario,
+                        correo: correo,
+                        telefono: telefono,
+                        contraseña: p1
+                    });
+                    UI.toast("Cuenta creada", "Registro exitoso. Ahora inicia sesion.", "success");
+                    setTimeout(function () { location.href = "login.html"; }, 900);
+                } catch (err) {
+                    console.error("Error en registro:", err);
+                    var msg = (Array.isArray(err && err.detail) ? "Revise los datos enviados." : (err && err.message)) || "No se pudo completar el registro.";
+                    UI.toast("Error", msg, "error");
+                } finally {
                     btn.classList.remove("btn-loading");
-                    UI.toast("Cuenta creada", "Bienvenido a El Corte Perfecto.", "success");
-                    setTimeout(function () { location.href = "app.html?rol=cliente"; }, 900);
-                }, 900);
+                    btn.disabled = false;
+                }
             });
         })();
     </script>
