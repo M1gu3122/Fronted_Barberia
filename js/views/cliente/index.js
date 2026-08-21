@@ -1,6 +1,8 @@
 ﻿/* ============================================================
    Barberia El Corte Perfecto — Vistas del Cliente
    ============================================================ */
+
+
 (function () {
   "use strict";
 
@@ -74,25 +76,77 @@
   }
 
   // Carga horarios disponibles para una fecha desde la API con fallback a mock
-  async function _cargarHorariosDisponibles(fechaStr) {
-    try {
-      var data = await api.getHorarioBarberia(1, fechaStr);
-      if (data && data.length > 0) {
-        // Normalizar los datos de la API al formato que espera UI.timeGrid
-        // { hora: "HH:MM", libre: true/false }
-        return data.map(function (h) {
-          return {
-            hora: h.hora || h.hora_inicio || h.hora_fin || h.hora_inicio_fin || "",
-            libre: h.libre !== false && h.disponible !== false && h.ocupado !== true
-          };
-        }).filter(function (h) { return h.hora; });
+async function _cargarHorariosDisponibles(fechaStr, barberoId) {
+  try {
+    // 1. First check if the barbería attends this day of the week
+    const barberia = await api.obtenerBarberia();
+    const id_barberia = barberia ? barberia.id_barberia : 1;
+    
+    const horariosSemanales = await api.getHorariosSemanales(id_barberia);
+    
+    // Normalize the weekly schedule days
+    var diasLaborables = [];
+    horariosSemanales.forEach(function (h) {
+      if (typeof h === "string") {
+        diasLaborables.push(h.toLowerCase());
+      } else if (h && h.dia_semana) {
+        diasLaborables.push(h.dia_semana.toLowerCase());
       }
-    } catch (err) {
-      console.error("Error cargando horarios desde API, usando mock:", err);
+    });
+    
+    // Check if the selected date's day is in the schedule
+    var fecha = new Date(fechaStr);
+    var nombreDia = fecha.toLocaleDateString("es-CO", { weekday: "long" }).toLowerCase();
+    
+    if (diasLaborables.indexOf(nombreDia) === -1) {
+      // Day not in schedule - return empty slots
+      console.warn(`La barbería no atiende ${nombreDia} (${fechaStr})`);
+      return [];
     }
-    // Fallback a mock: usar DB.horariosLibres con barbero por defecto (1)
-    return DB.horariosLibres(1, fechaStr);
+
+    // 2. Day is valid, now get the daily horario
+    const data = await api.getHorarioBarberia(id_barberia, fechaStr);
+
+    if (!data.hora_apertura || !data.hora_cierre) {
+      throw new Error("La API no devolvió hora de apertura/cierre válida");
+    }
+
+    const iniMin = parseInt(data.hora_apertura.split(':')[0]) * 60 +
+                   parseInt(data.hora_apertura.split(':')[1]);
+    const finMin = parseInt(data.hora_cierre.split(':')[0]) * 60 +
+                   parseInt(data.hora_cierre.split(':')[1]);
+
+    const slots = [];
+    for (let t = iniMin; t < finMin; t += 30) {
+      const hora = `${String(Math.floor(t/60)).padStart(2, '0')}:${String(t%60).padStart(2, '0')}`;
+
+      const esDisponible = !(DB.citas.find(function (c) {
+        if (!c.fecha_hora) return false;
+        const horaCita = new Date(c.fecha_hora);
+        const horaCitaStr = horaCita.toLocaleTimeString('es-CO', { hour12: false });
+        return c.id_barbero === barberoId &&
+               horaCita.toLocaleDateString() === fecha.toLocaleDateString() &&
+               horaCitaStr === hora;
+      }));
+
+      slots.push({ hora, libre: esDisponible });
+    }
+
+    return slots;
+
+  } catch (err) {
+    console.error("Error cargando horarios desde API:", err);
+    // Fallback: generar horarios por defecto 09:00-18:00
+    var slots = [];
+    var iniMin = 9 * 60; // 9:00 AM
+    var finMin = 18 * 60; // 6:00 PM
+    for (let t = iniMin; t < finMin; t += 30) {
+      const hora = `${String(Math.floor(t/60)).padStart(2, '0')}:${String(t%60).padStart(2, '0')}`;
+      slots.push({ hora, libre: true });
+    }
+    return slots;
   }
+}
 
   // Carga barberos disponibles para un servicio desde la API con fallback a mock
   async function _cargarBarberos(servicioId) {
@@ -931,6 +985,28 @@
       year: "numeric"
     });
 
+    // Cargar horarios semanales para saber qué días atiende la barbería
+    var horariosSemanales = [];
+    try {
+      const barberia = await api.obtenerBarberia();
+      const idBarberia = barberia ? barberia.id_barberia : 1;
+      horariosSemanales = await api.getHorariosSemanales(idBarberia);
+    } catch (err) {
+      console.error("Error cargando horarios semanales:", err);
+      // Si falla, usamos todos los días (fallback optimista)
+      horariosSemanales = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    }
+
+    // Normalizar los días que la barbería atiende
+    var diasLaborables = [];
+    horariosSemanales.forEach(function (h) {
+      if (typeof h === "string") {
+        diasLaborables.push(h.toLowerCase());
+      } else if (h && h.dia_semana) {
+        diasLaborables.push(h.dia_semana.toLowerCase());
+      }
+    });
+
     var celdas = [];
 
     // Espacios antes del primer día del mes
@@ -962,15 +1038,12 @@
         cls += " other";
       }
 
-      /*
-       * IMPORTANTE:
-       * Aquí NO hacemos:
-       *
-       * await _cargarHorariosDisponibles(fechaStr)
-       *
-       * porque eso provocaba una petición a la API por cada día
-       * del calendario apenas se abría la vista.
-       */
+      // Verificar si la barbería atiende este día de la semana
+      var nombreDia = d.toLocaleDateString("es-CO", { weekday: "long" }).toLowerCase();
+      var atiendeDia = diasLaborables.indexOf(nombreDia) !== -1;
+      if (!atiendeDia) {
+        cls += " disabled";
+      }
 
       var hayCita = DB.citas.filter(function (c) {
         return (
@@ -979,10 +1052,8 @@
         );
       }).length > 0;
 
-      // Por ahora solamente deshabilitamos fechas anteriores a hoy.
-      // Los horarios se consultarán cuando el usuario seleccione
-      // una fecha concreta.
-      var disabled = d < today;
+      // Deshabilitar fechas pasadas y días que la barbería no atiende
+      var disabled = d < today || !atiendeDia;
 
       var dotClass = hayCita
         ? ' class="cdot"'
@@ -1080,7 +1151,7 @@
   async function pasoHora() {
     var fechaSel = reserva.fecha || DateUtils.iso(0);
     var barberoId = reserva.barbero || 1;
-    var horarios = await _cargarHorariosDisponibles(fechaSel);
+    var horarios = await _cargarHorariosDisponibles(fechaSel, barberoId);
     var html = `
       <section class="card">
         <div class="card-header"><div><div class="card-title">Selecciona la hora</div><div class="card-sub">Solo se muestran horarios disponibles</div></div></div>
@@ -2062,27 +2133,38 @@
     var fechaHoraOrig = new Date(orig.fecha_hora);
     var fechaOrig = !isNaN(fechaHoraOrig.getTime())
       ? fechaHoraOrig.toLocaleDateString("es-CO", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric"
-        })
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      })
       : "Fecha no disponible";
 
     var horaOrig = !isNaN(fechaHoraOrig.getTime())
       ? fechaHoraOrig.toLocaleTimeString("es-CO", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        })
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      })
       : "";
 
     var estadoOrig = String(orig.estado_cita || orig.estado || "").toLowerCase();
 
-    var fechaSel = reservaActual.nuevaFecha || DB.iso(2);
+    var fechaSel = reservaActual.nuevaFecha || fechaHoraOrig.toISOString().split("T")[0] || DB.iso(0);
     var horaSel = reservaActual.nuevaHora || "";
+    var barberoId = reservaActual.barbero || 1;
 
     // Cargar horarios disponibles desde la API
-    var slots = await _cargarHorariosDisponibles(fechaSel);
+    var slots = await _cargarHorariosDisponibles(fechaSel, barberoId);
+
+    // Si no hay slots disponibles, mostrar mensaje y deshabilitar selección
+    if (!slots || slots.length === 0) {
+      UI.toast(
+        "Fecha no disponible",
+        "El día seleccionado no tiene horarios disponibles. Selecciona otra fecha.",
+        "warning"
+      );
+      horaSel = "";
+    }
 
     var html = `
       <section class="card">
