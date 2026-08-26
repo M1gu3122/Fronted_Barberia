@@ -1,0 +1,57 @@
+/* ============================================================
+   Components — Buttons
+   ============================================================ */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 13.5px; font-weight: 600; letter-spacing: .01em;
+  padding: 9px 16px; border-radius: 8px;
+  border: 1px solid transparent; cursor: pointer;
+  transition: all .16s ease; white-space: nowrap;
+  line-height: 1.2; font-family: inherit;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn i { font-size: 13px; }
+
+.btn-primary { background: var(--brass); color: #1a1304; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.btn-primary:hover { background: var(--brass-light); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:focus-visible { outline: 2px solid var(--brass-light); outline-offset: 2px; }
+
+.btn-dark { background: var(--charcoal); color: #f2efe7; }
+.btn-dark:hover { background: #232626; }
+
+.btn-ghost { background: transparent; color: var(--smoke); border-color: var(--line); }
+.btn-ghost:hover { background: var(--bone); color: var(--ink); }
+
+.btn-danger { background: transparent; color: var(--st-cancelada); border-color: #ecc8c4; }
+.btn-danger:hover { background: var(--st-cancelada-bg); }
+
+.btn-sm { padding: 6px 12px; font-size: 12.5px; border-radius: 7px; }
+.btn-lg { padding: 12px 22px; font-size: 14.5px; border-radius: 10px; }
+.btn-block { width: 100%; }
+.btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 7px; }
+.btn-icon i { font-size: 14px; }
+
+.btn-loading { position: relative; color: transparent !important; pointer-events: none; }
+.btn-loading::after {
+  content: ""; position: absolute; width: 15px; height: 15px;
+  border: 2px solid #1a1304; border-top-color: transparent;
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Icon button (reusable) */
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 9px;
+  display: grid; place-items: center; color: var(--smoke);
+  background: transparent; border: 1px solid transparent;
+  transition: background .15s, border-color .15s, color .15s;
+  cursor: pointer; position: relative;
+}
+.icon-btn:hover { background: var(--bone); color: var(--ink); }
+.icon-btn .dot {
+  position: absolute; top: 7px; right: 8px; width: 7px; height: 7px;
+  background: var(--st-cancelada); border-radius: 50%;
+  border: 1.5px solid var(--sand);
+}

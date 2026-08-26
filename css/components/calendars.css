@@ -1,0 +1,37 @@
+/* ============================================================
+   Components — Calendar, Time Grid, Schedule
+   ============================================================ */
+
+.cal-head { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px; }
+.cal-head span { text-align: center; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mist); padding: 6px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; font-size: 13.5px; font-weight: 500; color: var(--ink); cursor: pointer;
+  border: 1px solid transparent; transition: all .14s; background: transparent;
+}
+.cal-day:hover { background: var(--bone); }
+.cal-day.today { border-color: var(--brass); color: var(--brass-dim); }
+.cal-day.selected { background: var(--charcoal); color: #fff; box-shadow: 0 4px 12px rgba(18,20,20,.25); }
+.cal-day.other { color: #c8c2b5; }
+.cal-day .cdot { width: 4px; height: 4px; border-radius: 50%; background: var(--brass); }
+
+.time-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+.time-slot {
+  padding: 10px 4px; text-align: center; font-size: 13px; font-weight: 600; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--paper); cursor: pointer; transition: all .14s; color: var(--ink);
+}
+.time-slot:hover { border-color: var(--brass); color: var(--brass-dim); }
+.time-slot.selected { background: var(--charcoal); color: #fff; border-color: var(--charcoal); }
+.time-slot.taken { background: #f2efe9; color: #bfbaae; text-decoration: line-through; cursor: not-allowed; border-color: var(--line); }
+
+/* Schedule slots (variant) */
+.schedule-slot {
+  border: 1px solid var(--line); border-radius: 8px; text-align: center; padding: 10px 6px;
+  font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .14s;
+}
+.schedule-slot:hover { border-color: var(--brass); }
+.schedule-slot.available { background: var(--st-completada-bg); color: var(--st-completada); border-color: #c8e4ca; }
+.schedule-slot.taken { background: #f5f2ec; color: #bfbaae; cursor: not-allowed; }
+.schedule-slot.selected { background: var(--charcoal); color: #fff; border-color: var(--charcoal); }
+.schedule-slot.closed { background: #faf8f4; color: #cfc9bd; }

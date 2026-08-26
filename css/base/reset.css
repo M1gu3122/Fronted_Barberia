@@ -1,0 +1,50 @@
+/* ============================================================
+   Barberia El Corte Perfecto — Reset & Base Styles
+   ============================================================ */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  font-family: "Hanken Grotesk", system-ui, sans-serif;
+  background: var(--sand);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+html { background: var(--charcoal); }
+
+.font-display { font-family: "Playfair Display", Georgia, serif; }
+
+/* Focus visible para accesibilidad */
+a:focus-visible,
+button:focus-visible,
+.nav-item:focus-visible,
+.icon-btn:focus-visible,
+.tab:focus-visible,
+.page-btn:focus-visible,
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--brass-light);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar global */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4cdbf; border-radius: 8px; border: 2px solid var(--sand); }
+::-webkit-scrollbar-thumb:hover { background: var(--brass); }
+
+/* Selection */
+::selection { background: var(--brass); color: #1a1304; }

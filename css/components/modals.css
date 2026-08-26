@@ -1,0 +1,42 @@
+/* ============================================================
+   Components — Modals, Toasts, Confirm Dialogs
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: var(--z-modal);
+  background: rgba(14,15,16,.55); backdrop-filter: blur(2px);
+  display: grid; place-items: center; padding: 20px;
+}
+.modal {
+  width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+  background: var(--paper); border-radius: 14px; box-shadow: var(--shadow-pop);
+}
+.modal-header { padding: 18px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-body { padding: 22px 24px; }
+.modal-footer { padding: 14px 24px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 10px; }
+.modal-close { margin-left: auto; }
+
+.confirm-ico { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; margin-bottom: 14px; }
+.confirm-ico.danger { background: var(--st-cancelada-bg); color: var(--st-cancelada); }
+.confirm-ico.warn { background: var(--st-pendiente-bg); color: var(--st-pendiente); }
+.confirm-ico.success { background: var(--st-completada-bg); color: var(--st-completada); }
+
+/* Toasts */
+.toast-wrap { position: fixed; top: 16px; right: 16px; z-index: var(--z-toast); display: flex; flex-direction: column; gap: 10px; width: min(360px, calc(100vw - 32px)); }
+.toast {
+  background: var(--charcoal); color: #eee; border-radius: 10px;
+  padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start;
+  box-shadow: var(--shadow-pop); border-left: 3px solid var(--brass);
+}
+.toast.success { border-left-color: #4CAF50; }
+.toast.error { border-left-color: var(--st-cancelada); }
+.toast.info { border-left-color: var(--st-atencion); }
+.toast-icon { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; font-size: 11px; flex: none; margin-top: 1px; }
+.toast.success .toast-icon { background: rgba(76,175,80,.2); color: #7fd48a; }
+.toast.error .toast-icon { background: rgba(192,57,43,.2); color: #ff8d82; }
+.toast.info .toast-icon { background: rgba(29,111,168,.2); color: #6db3e0; }
+.toast-body { flex: 1; }
+.toast-title { font-size: 13px; font-weight: 700; }
+.toast-msg { font-size: 12.5px; color: #b9b6ae; }
+.toast-close { background: none; border: none; color: #777; cursor: pointer; font-size: 13px; }

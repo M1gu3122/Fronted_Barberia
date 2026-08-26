@@ -1,0 +1,34 @@
+/* ============================================================
+   Barberia El Corte Perfecto — Main CSS Entry Point
+   Importa todos los módulos CSS organizados
+   ============================================================ */
+
+/* Base */
+@import url('base/variables.css');
+@import url('base/reset.css');
+@import url('base/layout.css');
+
+/* Components */
+@import url('components/buttons.css');
+@import url('components/forms.css');
+@import url('components/cards.css');
+@import url('components/badges.css');
+@import url('components/tables.css');
+@import url('components/avatars.css');
+@import url('components/modals.css');
+@import url('components/tabs.css');
+@import url('components/calendars.css');
+@import url('components/steps.css');
+@import url('components/service-cards.css');
+@import url('components/timeline.css');
+@import url('components/notifications.css');
+@import url('components/autocomplete.css');
+@import url('components/flatpickr.css');
+@import url('components/empty-states.css');
+@import url('components/utilities.css');
+@import url('components/modal-reprogramar.css');
+@import url('components/responsive.css');
+
+/* Views */
+@import url('views/auth.css');
+@import url('views/admin.css');

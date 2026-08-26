@@ -1,0 +1,27 @@
+/* ============================================================
+   Components — Empty States, Skeleton, Dividers, Stats
+   ============================================================ */
+
+.empty { padding: 56px 24px; text-align: center; }
+.empty-ico {
+  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 18px;
+  background: var(--bone); display: grid; place-items: center; font-size: 26px; color: var(--brass-dim);
+}
+.empty-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.empty-text { font-size: 13.5px; color: var(--mist); max-width: 340px; margin: 0 auto 18px; }
+
+.skeleton { position: relative; overflow: hidden; background: var(--bone); border-radius: 8px; }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  animation: shimmer 1.3s infinite;
+}
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+.divider { height: 1px; background: var(--line); }
+.divider-label { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--mist); font-weight: 600; }
+.divider-label::before, .divider-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+.stat-inline { display: flex; align-items: baseline; gap: 8px; }
+.stat-inline .lbl { font-size: 12px; color: var(--mist); }
+.stat-inline .val { font-size: 15px; font-weight: 700; }
